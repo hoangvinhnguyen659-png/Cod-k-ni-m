@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh Xuân Của Chúng Ta</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
@@ -14,12 +13,13 @@
 </head>
 <body>
 
-    <div id="login-mask" class="modal-login">
+    <div id="login-mask" class="modal-login" style="display: none;">
         <div class="login-box">
+            <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
             <h2>Đăng nhập lớp mình</h2>
             <input type="email" id="login-email" placeholder="Email (ban1@lop.com)">
             <input type="password" id="login-pass" placeholder="Mật khẩu">
-            <button onclick="handleLogin()">Vào xem kỉ niệm</button>
+            <button onclick="handleLogin()">Đăng nhập</button>
         </div>
     </div>
 
@@ -30,12 +30,14 @@
                 <li><a href="#trang-chu">Trang chủ</a></li>
                 <li><a href="#thanh-vien">Thành viên</a></li>
                 <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
-                <li><a href="#dong-thoi-gian">Dòng thời gian</a></li>
                 <li><a href="#luu-but">Lưu bút</a></li>
             </ul>
             <div class="nav-right">
-                <button class="btn-menu" onclick="document.getElementById('music-modal').style.display='flex'">🎵 Nhạc</button>
-                <button class="btn-logout" onclick="firebase.auth().signOut()">Thoát</button>
+                <button class="btn-menu" onclick="document.getElementById('music-modal').style.display='flex'">
+                    <svg class="custom-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                    Playlist
+                </button>
+                <button class="btn-logout" id="auth-btn" onclick="toggleAuth()">Đăng nhập</button>
             </div>
         </div>
     </nav>
@@ -48,62 +50,21 @@
     </section>
 
     <section id="thanh-vien" class="container">
-        <h2 class="section-title">Thành Viên</h2>
-        <div class="grid-members" id="member-container">
-            </div>
+        <h2 class="section-title">Thành Viên (Sĩ số: 42)</h2>
+        <div class="grid-members" id="member-container"></div>
+        <button id="load-more-members" class="btn-load-more" onclick="loadMoreMembers()">Xem thêm thành viên</button>
     </section>
 
     <section id="khoanh-khac" class="container">
         <h2 class="section-title">Khoảnh khắc</h2>
-        <div class="grid-moments" id="moment-container">
-            </div>
-    </section>
-
-    <section id="dong-thoi-gian" class="container">
-        <h2 class="section-title">Dòng Thời Gian</h2>
-        <div class="timeline" id="timeline-container">
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h3>Tháng 8, 2021</h3>
-                    <h4>Ngày Tựu Trường</h4>
-                    <p>Gặp lại bạn bè sau kỳ nghỉ hè, những câu chuyện chưa kể và tiếng cười rộn rã.</p>
-                </div>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h3>Tháng 5, 2024</h3>
-                    <h4>Lễ Trưởng Thành</h4>
-                    <p>Bắt đầu hành trình cuối cùng dưới mái trường.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="phim-ngan" class="container">
-        <h2 class="section-title">Phim Ngắn Kỷ Niệm</h2>
-        <div class="video-wrapper">
-            <iframe width="100%" height="450" src="" frameborder="0" allowfullscreen></iframe>
-        </div>
+        <div class="grid-moments" id="moment-container"></div>
+        <button id="load-more-moments" class="btn-load-more" onclick="loadMoreMoments()">Xem thêm ảnh</button>
     </section>
 
     <section id="luu-but" class="container">
-        <h2 class="section-title">Những Lời Nhắn Nhủ</h2>
-        <div class="grid-notes" id="notes-container">
-            <div class="note-card" style="background-color: #ffeb3b;">
-                <p>Chúc cả lớp thi tốt nhé! Sẽ nhớ mọi người lắm.</p>
-                <span>- An Bình</span>
-            </div>
-            <div class="note-card" style="background-color: #ffcdd2;">
-                <p>Thanh xuân có các bạn là điều tuyệt vời nhất.</p>
-                <span>- Linh Hà</span>
-            </div>
-            <div class="note-card" style="background-color: #b2ebf2;">
-                <p>Hãy sống một cuộc đời rực rỡ nhé! Đừng quên nhau.</p>
-                <span>- Lê Chi</span>
-            </div>
-        </div>
+        <h2 class="section-title">Những Lời Nhắn Nhủ (42 Lưu Bút)</h2>
+        <div class="grid-notes" id="notes-container"></div>
+        <button id="load-more-notes" class="btn-load-more" onclick="loadMoreNotes()">Xem thêm lời nhắn</button>
     </section>
 
     <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
@@ -111,64 +72,29 @@
             <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
             <img id="modal-member-img" src="" alt="Avatar">
             <h3 id="modal-member-name">Tên Thành Viên</h3>
-            <p class="nickname" id="modal-member-nickname">Biệt danh</p>
             <div class="info-group">
-                <i class="fa-solid fa-heart"></i>
-                <div>
-                    <strong>Sở thích:</strong>
-                    <p id="modal-member-hobbies">Đang cập nhật...</p>
-                </div>
-            </div>
-            <div class="info-group">
-                <i class="fa-solid fa-comment-dots"></i>
-                <div>
-                    <strong>Lời nhắn:</strong>
-                    <p id="modal-member-message">Đang cập nhật...</p>
-                </div>
+                <svg class="custom-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #ff7675;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <p id="modal-member-hobbies"></p>
             </div>
         </div>
     </div>
 
-    <div id="music-modal" class="modal" onclick="closeModal(event, 'music-modal')">
-        <div class="modal-box music-box">
-            <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
-            <img src="https://via.placeholder.com/80" alt="Đĩa nhạc" style="border-radius:50%; width: 80px; margin-bottom: 15px;">
-            <h3>Chọn Nhạc Nền</h3>
-            <div class="music-list">
-                <div class="music-item" onclick="playMusic('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')">Tháng Năm Không Quên</div>
-                <div class="music-item" onclick="playMusic('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')">Năm Tháng Trôi Qua</div>
-                <div class="music-item" onclick="playMusic('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3')">Nhớ Mãi Chuyến Đi Này</div>
-            </div>
-            <audio id="audio-player" loop></audio>
+    <div class="spotify-player">
+        <div class="sp-left">
+            <img id="sp-cover" src="https://via.placeholder.com/100" alt="Cover">
+            <div class="sp-info"><h4 id="sp-title">Đang tải...</h4><p id="sp-artist">---</p></div>
         </div>
-    </div>
-
-    <div id="photo-modal" class="modal">
-        <div class="modal-content photo-layout">
-            <span class="close-btn" onclick="document.getElementById('photo-modal').style.display='none'">&times;</span>
-            <div class="modal-left">
-                <div class="image-wrapper">
-                    <img id="modal-photo-img" src="">
+        <div class="sp-center">
+            <div class="sp-controls">
+                <svg onclick="prevSong()" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                <div id="sp-play-btn" onclick="togglePlay()">
+                    <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </div>
-                <div class="reaction-bottom-bar">
-                    <div class="reactions-icons">
-                        <span onclick="sendReaction('👍')">👍</span>
-                        <span onclick="sendReaction('❤️')">❤️</span>
-                        <span onclick="sendReaction('😂')">😂</span>
-                        <span onclick="sendReaction('😢')">😢</span>
-                    </div>
-                    <div id="reaction-summary" class="reaction-summary"></div>
-                </div>
+                <svg onclick="nextSong()" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
             </div>
-            <div class="modal-right">
-                <div class="chat-header">Bình luận</div>
-                <div class="comment-list" id="modal-comments"></div>
-                <div class="comment-box">
-                    <input type="text" id="new-comment" placeholder="Viết phản hồi...">
-                    <button onclick="postComment()"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-            </div>
+            <input type="range" id="sp-progress-bar" value="0" max="100" onchange="seekSong()">
         </div>
+        <audio id="audio-player"></audio>
     </div>
 
     <script src="script.js"></script>
