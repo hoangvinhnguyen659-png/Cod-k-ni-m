@@ -6,25 +6,28 @@
     <title>Cod kỉ niệm</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <nav>
-        <a href="#trang-chu" class="logo">Thanh xuân</a>
-        <div class="nav-links">
-            <a href="#trang-chu">Trang chủ</a>
-            <a href="#thanh-vien">Thành viên</a>
-            <a href="#khoanh-khac">Khoảnh khắc</a>
-            <a href="#dong-thoi-gian">Dòng thời gian</a>
-            
-            <div class="music-player">
-                <select id="bg-music-select">
-                    <option value="">-- Chọn bài nhạc --</option>
-                    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Nhạc kỉ niệm 1</option>
-                    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Nhạc kỉ niệm 2</option>
-                </select>
-                <audio id="audio-player" loop></audio>
+        <div class="nav-container">
+            <a href="#trang-chu" class="logo">Thanh xuân</a>
+            <div class="nav-right">
+                <div class="music-player">
+                    <select id="bg-music-select">
+                        <option value="">🎵 Nhạc</option>
+                        <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Kỉ niệm 1</option>
+                        <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Kỉ niệm 2</option>
+                    </select>
+                    <audio id="audio-player" loop></audio>
+                </div>
+                <div class="nav-links">
+                    <a href="#thanh-vien">Thành viên</a>
+                    <a href="#khoanh-khac">Ảnh</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -46,65 +49,29 @@
         <button class="btn-xem-them" id="btn-more-moments" onclick="showMore('moment-container', 'btn-more-moments')">Xem thêm</button>
     </section>
 
-    <section id="dong-thoi-gian" class="container">
-        <h2 class="section-title">Dòng thời gian</h2>
-        <div class="timeline-content" id="timeline-text">
-            <p><strong>Tháng 9/2020:</strong> Ngày đầu tiên bước vào lớp, những ánh mắt bỡ ngỡ, những cái tên chưa kịp nhớ. Chúng ta đã bắt đầu thanh xuân ở đây...</p><br>
-            <p><strong>Tháng 11/2021:</strong> Buổi cắm trại đầu tiên, cùng nhau hát hò quanh đống lửa.</p><br>
-            <p><strong>Tháng 3/2022:</strong> Kì thi căng thẳng, chia nhau từng gói xôi, ly trà sữa buổi sáng.</p><br>
-            <p><strong>Tháng 5/2023:</strong> Mùa phượng nở, những dòng lưu bút viết vội.</p><br>
-            <p><strong>Hiện tại:</strong> Dù mỗi người một ngả, thanh xuân năm ấy vẫn luôn là kí ức đẹp nhất.</p>
-        </div>
-        <button class="btn-xem-them" id="btn-timeline" onclick="toggleTimeline()">Xem thêm</button>
-    </section>
-
-    <section id="phim-ngan" class="container">
-        <h2 class="section-title">Phim ngắn kỉ niệm</h2>
-        <div class="video-container">
-            <video controls poster="https://via.placeholder.com/800x450.png?text=B%E1%BA%A5m+%C4%91%E1%BB%83+xem+video">
-                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            </video>
-        </div>
-    </section>
-
-    <section id="nhan-nhu" class="container" style="margin-bottom: 100px;">
-        <h2 class="section-title">Những lời nhắn nhủ</h2>
-        <div class="grid-notes" id="note-container"></div>
-        <button class="btn-xem-them" id="btn-more-notes" onclick="showMore('note-container', 'btn-more-notes')">Xem thêm</button>
-    </section>
-
-    <div id="member-modal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close-btn" onclick="closeModal('member-modal')">&times;</span>
-            <img id="modal-member-img" src="" style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; margin-bottom: 20px;">
-            <h2 id="modal-member-name" style="margin-bottom: 10px; color: var(--primary);"></h2>
-            <p id="modal-member-info">Thông tin chi tiết, sở thích, câu nói yêu thích...</p>
-        </div>
-    </div>
-
     <div id="photo-modal" class="modal">
         <div class="modal-content photo-layout">
             <span class="close-btn" onclick="closeModal('photo-modal')">&times;</span>
-            
             <div class="modal-left">
-                <img id="modal-photo-img" src="">
+                <div class="image-wrapper">
+                    <img id="modal-photo-img" src="">
+                    <div id="reaction-summary" class="reaction-summary"></div>
+                </div>
                 <div class="reaction-bar">
-                    <span onclick="react('👍')">👍</span>
-                    <span onclick="react('❤️')">❤️</span>
-                    <span onclick="react('😂')">😂</span>
-                    <span onclick="react('😮')">😮</span>
-                    <span onclick="react('😢')">😢</span>
-                    <span onclick="react('😡')">😡</span>
+                    <span onclick="sendReaction('👍')">👍</span>
+                    <span onclick="sendReaction('❤️')">❤️</span>
+                    <span onclick="sendReaction('😂')">😂</span>
+                    <span onclick="sendReaction('😮')">😮</span>
+                    <span onclick="sendReaction('😢')">😢</span>
+                    <span onclick="sendReaction('😡')">😡</span>
                 </div>
             </div>
-
             <div class="modal-right">
-                <h3 style="margin-bottom: 15px; color: var(--primary);">Bình luận</h3>
-                <div class="comment-list" id="modal-comments">
-                    </div>
+                <div class="chat-header">Bình luận</div>
+                <div class="comment-list" id="modal-comments"></div>
                 <div class="comment-box">
                     <input type="text" id="new-comment" placeholder="Viết phản hồi...">
-                    <button onclick="postComment()">Gửi</button>
+                    <button onclick="postComment()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
