@@ -3,125 +3,103 @@ const firebaseConfig = {
     authDomain: "cod-ki-niem.firebaseapp.com",
     databaseURL: "https://cod-ki-niem-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "cod-ki-niem",
-    storageBucket: "cod-ki-niem.firebasestorage.app",
-    messagingSenderId: "564135267081",
     appId: "1:564135267081:web:ddc21cee697090914a61d8"
 };
-
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
+const auth = firebase.auth();
 
-document.addEventListener('DOMContentLoaded', () => {
-    const musicSelect = document.getElementById('bg-music-select');
-    const audioPlayer = document.getElementById('audio-player');
-    musicSelect.onchange = function() {
-        if(this.value) { audioPlayer.src = this.value; audioPlayer.play(); }
-        else { audioPlayer.pause(); }
-    };
-
-    const memberContainer = document.getElementById('member-container');
-    for(let i=1; i<=15; i++) {
-        let div = document.createElement('div');
-        div.className = `member-card ${i > 8 ? 'hidden-item' : ''}`;
-        div.innerHTML = `<img src="https://via.placeholder.com/300x300.png?text=Ban+${i}"><h3>Bạn ${i}</h3>`;
-        memberContainer.appendChild(div);
-    }
-
-    const momentContainer = document.getElementById('moment-container');
-    for(let i=1; i<=12; i++) {
-        let div = document.createElement('div');
-        div.className = `moment-card ${i > 6 ? 'hidden-item' : ''}`;
-        let imgUrl = `https://via.placeholder.com/600x600.png?text=Ky+Niem+${i}`;
-        div.onclick = () => openPhotoModal(imgUrl, `anh_${i}`);
-        div.innerHTML = `<img src="${imgUrl}">`;
-        momentContainer.appendChild(div);
-    }
-
-    const noteContainer = document.getElementById('note-container');
-    for(let i=1; i<=10; i++) {
-        let div = document.createElement('div');
-        div.className = `note ${i > 4 ? 'hidden-item' : ''}`;
-        div.innerHTML = `Mãi nhớ về nhau nhé! <br><br>- Bạn lớp mình ${i}`;
-        noteContainer.appendChild(div);
+// Theo dõi đăng nhập
+auth.onAuthStateChanged(user => {
+    if (user) {
+        document.getElementById('login-mask').style.display = 'none';
+        loadData();
+    } else {
+        document.getElementById('login-mask').style.display = 'flex';
     }
 });
 
-let currentPhotoId = null;
+function handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-pass').value;
+    auth.signInWithEmailAndPassword(email, pass).catch(err => alert("Sai tài khoản hoặc mật khẩu!"));
+}
 
-function openPhotoModal(imgSrc, photoId) {
-    currentPhotoId = photoId;
-    document.getElementById('modal-photo-img').src = imgSrc;
-    document.getElementById('modal-comments').innerHTML = "";
-    document.getElementById('photo-modal').style.display = 'flex';
-
-    database.ref('comments/' + photoId).on('child_added', (snapshot) => {
-        const data = snapshot.val();
-        const list = document.getElementById('modal-comments');
-        const p = document.createElement('p');
-        p.innerHTML = `<strong>${data.name}</strong>${data.message}`;
-        list.appendChild(p);
-        list.scrollTop = list.scrollHeight;
+function loadData() {
+    // Load Thành Viên
+    database.ref('users').on('value', snap => {
+        const container = document.getElementById('member-container');
+        container.innerHTML = `<div class="member-card add-btn" onclick="updateProfile()"><i class="fa-solid fa-user-plus"></i><p>Sửa Profile mình</p></div>`;
+        snap.forEach(child => {
+            const val = child.val();
+            container.innerHTML += `<div class="member-card"><img src="${val.avatar || 'https://via.placeholder.com/150'}"><h3>${val.name || 'Thành viên'}</h3></div>`;
+        });
     });
 
-    database.ref('reactions/' + photoId).on('value', (snapshot) => {
-        const reactions = snapshot.val();
-        const summaryDiv = document.getElementById('reaction-summary');
-        if(!reactions) { summaryDiv.style.display = 'none'; return; }
-        
-        summaryDiv.style.display = 'flex';
-        let counts = {};
-        Object.values(reactions).forEach(emoji => {
-            counts[emoji] = (counts[emoji] || 0) + 1;
+    // Load Khoảnh Khắc
+    database.ref('moments').on('value', snap => {
+        const container = document.getElementById('moment-container');
+        container.innerHTML = `<div class="moment-card add-btn" onclick="uploadMoment()"><i class="fa-solid fa-camera"></i><p>Thêm ảnh</p></div>`;
+        snap.forEach(child => {
+            const val = child.val();
+            let div = document.createElement('div');
+            div.className = 'moment-card';
+            div.onclick = () => openPhotoModal(val.url, child.key);
+            div.innerHTML = `<img src="${val.url}">`;
+            container.insertBefore(div, container.firstChild);
         });
+    });
+}
 
-        let html = "";
-        for (let emoji in counts) {
-            html += `<span>${emoji} ${counts[emoji]}</span>`;
+function updateProfile() {
+    const name = prompt("Nhập tên thật của bạn:");
+    const avatar = prompt("Dán link ảnh chân dung (Imgur/Postimages):");
+    if(name && avatar) {
+        database.ref('users/' + auth.currentUser.uid).set({ name, avatar });
+    }
+}
+
+function uploadMoment() {
+    const url = prompt("Dán link ảnh kỷ niệm:");
+    if(url) database.ref('moments').push({ url, owner: auth.currentUser.email });
+}
+
+function openPhotoModal(src, id) {
+    currentPhotoId = id;
+    document.getElementById('modal-photo-img').src = src;
+    document.getElementById('photo-modal').style.display = 'flex';
+    document.getElementById('modal-comments').innerHTML = "";
+
+    database.ref('comments/' + id).on('child_added', snap => {
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>Lớp mình</strong>${snap.val().msg}`;
+        document.getElementById('modal-comments').appendChild(p);
+    });
+
+    database.ref('reactions/' + id).on('value', snap => {
+        let counts = {};
+        if(snap.val()) {
+            Object.values(snap.val()).forEach(e => counts[e] = (counts[e] || 0) + 1);
+            let html = "";
+            for(let e in counts) html += `<span>${e} ${counts[e]}</span>`;
+            document.getElementById('reaction-summary').innerHTML = html;
         }
-        summaryDiv.innerHTML = html;
     });
 }
 
 function postComment() {
-    const input = document.getElementById('new-comment');
-    if(input.value.trim() && currentPhotoId) {
-        database.ref('comments/' + currentPhotoId).push({
-            name: "Lớp mình",
-            message: input.value.trim()
-        });
-        input.value = "";
+    const msg = document.getElementById('new-comment').value;
+    if(msg) {
+        database.ref('comments/' + currentPhotoId).push({ msg });
+        document.getElementById('new-comment').value = "";
     }
 }
 
-function sendReaction(emoji) {
-    if(currentPhotoId) {
-        database.ref('reactions/' + currentPhotoId).push(emoji);
-    }
+function sendReaction(e) {
+    database.ref('reactions/' + currentPhotoId).push(e);
 }
 
-function closeModal(id) {
-    document.getElementById(id).style.display = 'none';
-    if(id === 'photo-modal') {
-        database.ref('comments/' + currentPhotoId).off();
-        database.ref('reactions/' + currentPhotoId).off();
-    }
-}
-
-function showMore(containerId, btnId) {
-    document.getElementById(containerId).querySelectorAll('.hidden-item').forEach(item => item.classList.remove('hidden-item'));
-    document.getElementById(btnId).style.display = 'none';
-}
-
-function toggleTimeline() {
-    const content = document.getElementById('timeline-text');
-    content.classList.toggle('expanded');
-}
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
-document.onkeydown = function(e) {
-    if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) {
-        return false;
-    }
-};
-
-window.onclick = (e) => { if(e.target.classList.contains('modal')) closeModal(e.target.id); };
+document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false; };
