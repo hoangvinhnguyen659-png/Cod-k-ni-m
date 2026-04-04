@@ -83,20 +83,29 @@
     </div>
 
     <div id="photo-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content photo-layout">
             <span class="close-btn" onclick="closeModal('photo-modal')">&times;</span>
-            <img id="modal-photo-img" class="photo-modal-img" src="">
-            <div class="actions">
-                <button onclick="addReaction()"><i class="fa-solid fa-heart"></i> <span id="react-count">15</span></button>
-                <button><i class="fa-solid fa-comment"></i> Bình luận</button>
+            
+            <div class="modal-left">
+                <img id="modal-photo-img" src="">
+                <div class="reaction-bar">
+                    <span onclick="react('👍')">👍</span>
+                    <span onclick="react('❤️')">❤️</span>
+                    <span onclick="react('😂')">😂</span>
+                    <span onclick="react('😮')">😮</span>
+                    <span onclick="react('😢')">😢</span>
+                    <span onclick="react('😡')">😡</span>
+                </div>
             </div>
-            <div class="comment-list" id="modal-comments">
-                <p><strong>Tuấn:</strong> Tấm này chụp lúc đi Đà Lạt vui ghê!</p>
-                <p><strong>Lan:</strong> Nhớ mọi người quá...</p>
-            </div>
-            <div class="comment-box">
-                <input type="text" id="new-comment" placeholder="Viết bình luận...">
-                <button onclick="postComment()">Gửi</button>
+
+            <div class="modal-right">
+                <h3 style="margin-bottom: 15px; color: var(--primary);">Bình luận</h3>
+                <div class="comment-list" id="modal-comments">
+                    </div>
+                <div class="comment-box">
+                    <input type="text" id="new-comment" placeholder="Viết phản hồi...">
+                    <button onclick="postComment()">Gửi</button>
+                </div>
             </div>
         </div>
     </div>
