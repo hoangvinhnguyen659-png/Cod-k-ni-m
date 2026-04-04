@@ -36,6 +36,14 @@ document.addEventListener('DOMContentLoaded', () => {
         div.innerHTML = `<img src="${imgUrl}">`;
         momentContainer.appendChild(div);
     }
+
+    const noteContainer = document.getElementById('note-container');
+    for(let i=1; i<=10; i++) {
+        let div = document.createElement('div');
+        div.className = `note ${i > 4 ? 'hidden-item' : ''}`;
+        div.innerHTML = `Mãi nhớ về nhau nhé! <br><br>- Bạn lớp mình ${i}`;
+        noteContainer.appendChild(div);
+    }
 });
 
 let currentPhotoId = null;
@@ -59,10 +67,18 @@ function openPhotoModal(imgSrc, photoId) {
         const reactions = snapshot.val();
         const summaryDiv = document.getElementById('reaction-summary');
         if(!reactions) { summaryDiv.style.display = 'none'; return; }
+        
         summaryDiv.style.display = 'flex';
-        const count = Object.keys(reactions).length;
-        const lastEmoji = Object.values(reactions).pop();
-        summaryDiv.innerHTML = `${lastEmoji} <span>${count}</span>`;
+        let counts = {};
+        Object.values(reactions).forEach(emoji => {
+            counts[emoji] = (counts[emoji] || 0) + 1;
+        });
+
+        let html = "";
+        for (let emoji in counts) {
+            html += `<span>${emoji} ${counts[emoji]}</span>`;
+        }
+        summaryDiv.innerHTML = html;
     });
 }
 
@@ -70,7 +86,7 @@ function postComment() {
     const input = document.getElementById('new-comment');
     if(input.value.trim() && currentPhotoId) {
         database.ref('comments/' + currentPhotoId).push({
-            name: "Thành viên lớp",
+            name: "Lớp mình",
             message: input.value.trim()
         });
         input.value = "";
@@ -94,6 +110,11 @@ function closeModal(id) {
 function showMore(containerId, btnId) {
     document.getElementById(containerId).querySelectorAll('.hidden-item').forEach(item => item.classList.remove('hidden-item'));
     document.getElementById(btnId).style.display = 'none';
+}
+
+function toggleTimeline() {
+    const content = document.getElementById('timeline-text');
+    content.classList.toggle('expanded');
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
