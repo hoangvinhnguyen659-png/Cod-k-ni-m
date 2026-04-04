@@ -3,76 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cod kỉ niệm</title>
+    <title>Thanh Xuân Lớp Mình</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <div id="login-mask" class="modal-login">
+        <div class="login-box">
+            <h2>Đăng nhập lớp mình</h2>
+            <input type="email" id="login-email" placeholder="Email (ban1@lop.com)">
+            <input type="password" id="login-pass" placeholder="Mật khẩu">
+            <button onclick="handleLogin()">Vào xem kỉ niệm</button>
+        </div>
+    </div>
+
     <nav>
         <div class="nav-container">
-            <a href="#trang-chu" class="logo">Thanh xuân</a>
+            <a href="#" class="logo">Thanh xuân</a>
             <div class="nav-right">
                 <div class="music-player">
                     <select id="bg-music-select">
                         <option value="">🎵 Nhạc</option>
                         <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Kỉ niệm 1</option>
-                        <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">Kỉ niệm 2</option>
                     </select>
                     <audio id="audio-player" loop></audio>
                 </div>
-                <div class="nav-links">
-                    <a href="#thanh-vien">Thành viên</a>
-                    <a href="#khoanh-khac">Ảnh</a>
-                    <a href="#dong-thoi-gian">Timeline</a>
-                </div>
+                <button class="btn-logout" onclick="firebase.auth().signOut()">Thoát</button>
             </div>
         </div>
     </nav>
 
     <section id="trang-chu">
         <h1>Thanh xuân của chúng ta</h1>
-        <button class="btn-kham-pha" onclick="document.getElementById('thanh-vien').scrollIntoView();">Khám phá kỉ niệm</button>
     </section>
 
-    <section id="thanh-vien" class="container">
+    <section class="container">
         <h2 class="section-title">Thành viên lớp</h2>
         <div class="grid-members" id="member-container"></div>
-        <button class="btn-xem-them" id="btn-more-members" onclick="showMore('member-container', 'btn-more-members')">Xem thêm</button>
     </section>
 
-    <section id="khoanh-khac" class="container">
-        <h2 class="section-title">Khoảnh khắc đáng nhớ</h2>
+    <section class="container">
+        <h2 class="section-title">Khoảnh khắc</h2>
         <div class="grid-moments" id="moment-container"></div>
-        <button class="btn-xem-them" id="btn-more-moments" onclick="showMore('moment-container', 'btn-more-moments')">Xem thêm</button>
-    </section>
-
-    <section id="dong-thoi-gian" class="container">
-        <h2 class="section-title">Dòng thời gian</h2>
-        <div class="timeline-content" id="timeline-text">
-            <p><strong>Tháng 9/2020:</strong> Ngày đầu tiên bước vào lớp...</p><br>
-            <p><strong>Tháng 11/2021:</strong> Buổi cắm trại đầu tiên...</p><br>
-            <p><strong>Tháng 5/2023:</strong> Mùa phượng nở cuối cùng...</p>
-        </div>
-        <button class="btn-xem-them" id="btn-timeline" onclick="toggleTimeline()">Xem thêm</button>
-    </section>
-
-    <section id="phim-ngan" class="container">
-        <h2 class="section-title">Phim ngắn kỉ niệm</h2>
-        <div class="video-container">
-            <video controls style="width:100%; border-radius:15px;">
-                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            </video>
-        </div>
-    </section>
-
-    <section id="nhan-nhu" class="container" style="margin-bottom: 100px;">
-        <h2 class="section-title">Lời nhắn nhủ</h2>
-        <div class="grid-notes" id="note-container"></div>
-        <button class="btn-xem-them" id="btn-more-notes" onclick="showMore('note-container', 'btn-more-notes')">Xem thêm</button>
     </section>
 
     <div id="photo-modal" class="modal">
@@ -89,7 +66,6 @@
                     <span onclick="sendReaction('😂')">😂</span>
                     <span onclick="sendReaction('😮')">😮</span>
                     <span onclick="sendReaction('😢')">😢</span>
-                    <span onclick="sendReaction('😡')">😡</span>
                 </div>
             </div>
             <div class="modal-right">
