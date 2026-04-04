@@ -11,6 +11,22 @@ body { background: var(--bg-light); scroll-behavior: smooth; }
 .container { padding: 60px 5%; max-width: 1200px; margin: auto; }
 .section-title { font-family: 'Dancing Script', cursive; font-size: 2.5rem; text-align: center; margin-bottom: 40px; color: #2d3436; }
 
+/* Navigation & Hero */
+nav { background: white; padding: 15px 5%; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: auto; }
+.logo { font-family: 'Dancing Script', cursive; font-size: 1.8rem; font-weight: bold; color: var(--primary); text-decoration: none; }
+.nav-links { display: flex; list-style: none; gap: 20px; }
+.nav-links a { text-decoration: none; color: #2d3436; font-weight: 600; transition: 0.3s; }
+.nav-links a:hover { color: var(--primary); }
+.nav-right { display: flex; gap: 10px; align-items: center; }
+button { font-family: 'Quicksand', sans-serif; outline: none; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.btn-menu { background: transparent; color: #2d3436; border: 2px solid #ddd; display: flex; align-items: center; }
+.btn-logout { background: var(--primary); color: white; }
+.btn-logout:hover { background: #10ac84; }
+
+.hero-content { background: linear-gradient(135deg, #1dd1a1, #54a0ff); color: white; text-align: center; padding: 100px 20px; border-radius: 0 0 30px 30px; margin-bottom: 40px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+.hero-content h1 { font-family: 'Dancing Script', cursive; font-size: 4rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+
 /* Grid Thành Viên & Ảnh */
 .grid-members, .grid-moments {
     display: grid;
@@ -26,7 +42,10 @@ body { background: var(--bg-light); scroll-behavior: smooth; }
 .member-card img, .moment-card img { width: 100%; height: 200px; object-fit: cover; }
 .member-name-plate { padding: 10px; text-align: center; font-weight: 600; }
 
-/* Grid Lưu Bút (42 Note) */
+.add-btn { display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fff; border: 2px dashed #ccc; min-height: 200px; }
+.add-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Grid Lưu Bút */
 .grid-notes {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -66,6 +85,13 @@ body { background: var(--bg-light); scroll-behavior: smooth; }
 #sp-progress-bar { width: 100%; cursor: pointer; accent-color: #1db954; }
 
 /* Modal */
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 10000; }
-.modal-box { background: white; padding: 30px; border-radius: 20px; position: relative; max-width: 400px; width: 90%; }
+.modal, .modal-login { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+.modal-box, .login-box { background: white; padding: 30px; border-radius: 20px; position: relative; max-width: 400px; width: 90%; }
+.login-box { text-align: center; }
+.login-box h2 { margin-bottom: 20px; }
+.login-box input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+.login-box button { width: 100%; background: var(--primary); color: white; padding: 10px; }
 .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
+.member-detail-box img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 15px; }
+.member-detail-box h3 { text-align: center; margin-bottom: 15px; }
+.info-group { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
