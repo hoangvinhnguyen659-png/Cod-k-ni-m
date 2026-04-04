@@ -1,193 +1,93 @@
-// Cấu hình Firebase (Thay bằng thông tin của bạn nếu cần)
 const firebaseConfig = {
     apiKey: "AIzaSyCNzWm4KPPNA06L0RCxK6blA2-SudRVw3U",
-    authDomain: "cod-ki-niem.firebaseapp.com",
     databaseURL: "https://cod-ki-niem-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "cod-ki-niem",
-    storageBucket: "cod-ki-niem.appspot.com", // Đảm bảo bạn có dòng này cho Storage
-    appId: "1:564135267081:web:ddc21cee697090914a61d8"
+    storageBucket: "cod-ki-niem.appspot.com"
 };
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 const auth = firebase.auth();
-const storage = firebase.storage(); // Khởi tạo Storage để up file
-let currentPhotoId = null;
 
-// Kiểm tra đăng nhập
-auth.onAuthStateChanged(user => {
-    if (user) {
-        document.getElementById('login-mask').style.display = 'none';
-        loadData();
-    } else {
-        document.getElementById('login-mask').style.display = 'flex';
+let allMembers = [];
+let allMoments = [];
+let limitMembers = 10;
+let limitMoments = 10;
+let limitNotes = 10;
+
+// Khởi tạo 42 Giấy Note
+const allNotes = Array.from({length: 42}, (_, i) => ({
+    msg: `Lớp mình mãi đỉnh! Chúc mọi người thi tốt và đạt được ước mơ nhé. Hẹn gặp lại vào ngày họp lớp!`,
+    author: `Thành viên ${i + 1}`,
+    color: ['#ffeb3b', '#ffcdd2', '#b2ebf2', '#c8e6c9', '#e1bee7'][i % 5]
+}));
+
+const iconEdit = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="custom-icon-large"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+
+// Load Thành viên & Tự động bù đủ 42
+database.ref('users').on('value', snap => {
+    allMembers = [];
+    snap.forEach(child => { allMembers.push({...child.val(), id: child.key}); });
+    
+    while(allMembers.length < 42) {
+        allMembers.push({ name: `Thành viên ${allMembers.length + 1}`, avatar: 'https://via.placeholder.com/150' });
     }
+    renderMembers();
 });
 
-function handleLogin() {
-    const email = document.getElementById('login-email').value;
-    const pass = document.getElementById('login-pass').value;
-    auth.signInWithEmailAndPassword(email, pass).catch(err => alert("Sai tài khoản hoặc mật khẩu!"));
+function renderMembers() {
+    const container = document.getElementById('member-container');
+    container.innerHTML = `<div class="member-card add-btn" onclick="updateProfile()">${iconEdit}<p>Sửa Profile</p></div>`;
+    allMembers.slice(0, limitMembers).forEach(m => {
+        container.innerHTML += `<div class="member-card" onclick="openMemberModal('${m.name}', '${m.avatar}')">
+            <img src="${m.avatar}"><div class="member-name-plate">${m.name}</div>
+        </div>`;
+    });
+    document.getElementById('load-more-members').style.display = limitMembers < 42 ? 'block' : 'none';
 }
 
-function loadData() {
-    // 1. Tải danh sách Thành Viên (42 người)
-    database.ref('users').on('value', snap => {
-        const container = document.getElementById('member-container');
-        // Nút cập nhật hồ sơ cá nhân
-        container.innerHTML = `<div class="member-card add-btn" onclick="updateProfile()">
-            <i class="fa-solid fa-user-pen"></i><p>Sửa Profile của tôi</p>
-        </div>`;
-        
-        snap.forEach(child => {
-            const val = child.val();
-            let div = document.createElement('div');
-            div.className = 'member-card';
-            // Click vào thẻ sẽ mở popup thông tin
-            div.onclick = () => openMemberModal(val);
-            div.innerHTML = `
-                <img src="${val.avatar || 'https://via.placeholder.com/150'}" alt="avt">
-                <div class="member-name-plate">${val.name || 'Thành viên'}</div>
-            `;
-            container.appendChild(div);
-        });
-    });
+function loadMoreMembers() { limitMembers += 10; renderMembers(); }
 
-    // 2. Tải Khoảnh Khắc
-    database.ref('moments').on('value', snap => {
-        const container = document.getElementById('moment-container');
-        // Nút up ảnh từ máy tính
-        container.innerHTML = `<div class="moment-card add-btn" onclick="uploadMomentFromDevice()">
-            <i class="fa-solid fa-cloud-arrow-up"></i><p>Tải ảnh lên</p>
-        </div>`;
-        
-        snap.forEach(child => {
-            const val = child.val();
-            let div = document.createElement('div');
-            div.className = 'moment-card';
-            div.onclick = () => openPhotoModal(val.url, child.key);
-            div.innerHTML = `<img src="${val.url}">`;
-            container.insertBefore(div, container.firstChild); // Ảnh mới lên đầu
-        });
-    });
-}
-
-// Cập nhật Profile
-function updateProfile() {
-    const name = prompt("Nhập tên thật của bạn:");
-    const nickname = prompt("Nhập biệt danh:");
-    const hobbies = prompt("Sở thích của bạn:");
-    const message = prompt("Lời nhắn nhủ cho lớp:");
-    const avatar = prompt("Dán link ảnh chân dung (Tạm thời dùng link, up file sẽ cấu hình sau):");
-    
-    if(name && avatar) {
-        database.ref('users/' + auth.currentUser.uid).set({ 
-            name: name, nickname: nickname, hobbies: hobbies, message: message, avatar: avatar 
-        });
+// Render Ảnh (Mẫu 42 ảnh)
+function renderMoments() {
+    const container = document.getElementById('moment-container');
+    container.innerHTML = '';
+    for(let i=1; i<=limitMoments; i++){
+        container.innerHTML += `<div class="moment-card"><img src="https://picsum.photos/300/300?random=${i}"></div>`;
     }
+    document.getElementById('load-more-moments').style.display = limitMoments < 42 ? 'block' : 'none';
 }
+function loadMoreMoments() { limitMoments += 10; renderMoments(); }
 
-// Upload ảnh kỷ niệm TỪ MÁY TÍNH
-function uploadMomentFromDevice() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    
-    input.onchange = e => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const fileName = Date.now() + '_' + file.name;
-        const storageRef = storage.ref('kiniem/' + fileName);
-
-        alert("Đang tải ảnh lên, bạn đợi xíu nhé...");
-
-        storageRef.put(file).then(snapshot => {
-            return snapshot.ref.getDownloadURL();
-        }).then(downloadURL => {
-            database.ref('moments').push({ url: downloadURL, owner: auth.currentUser.email });
-            alert("Tải ảnh thành công!");
-        }).catch(error => {
-            console.error(error);
-            alert("Lỗi tải ảnh. Vui lòng kiểm tra quyền Storage trên Firebase.");
-        });
-    };
-    input.click();
+// Render 42 Note
+function renderNotes() {
+    const container = document.getElementById('notes-container');
+    container.innerHTML = '';
+    allNotes.slice(0, limitNotes).forEach(n => {
+        container.innerHTML += `<div class="note-card" style="background:${n.color}"><p>"${n.msg}"</p><span>- ${n.author}</span></div>`;
+    });
+    document.getElementById('load-more-notes').style.display = limitNotes < 42 ? 'block' : 'none';
 }
+function loadMoreNotes() { limitNotes += 10; renderNotes(); }
 
-// --- MỞ CÁC MODALS --- //
+// Khởi chạy
+renderMoments();
+renderNotes();
 
-function openMemberModal(data) {
-    document.getElementById('modal-member-img').src = data.avatar || 'https://via.placeholder.com/150';
-    document.getElementById('modal-member-name').innerText = data.name || 'Chưa cập nhật tên';
-    document.getElementById('modal-member-nickname').innerText = data.nickname || '';
-    document.getElementById('modal-member-hobbies').innerText = data.hobbies || 'Chưa có thông tin';
-    document.getElementById('modal-member-message').innerText = data.message || 'Chưa có lời nhắn';
+// Nhạc Spotify (Giữ nguyên logic cũ nhưng fix giao diện)
+const songs = [{ title: "Tháng Năm Không Quên", artist: "Học sinh 12", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", cover: "https://picsum.photos/100/100?music=1" }];
+const audio = document.getElementById('audio-player');
+function togglePlay() { 
+    if(audio.paused) { audio.play(); document.getElementById('play-icon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; }
+    else { audio.pause(); document.getElementById('play-icon').innerHTML = '<path d="M8 5v14l11-7z"/>'; }
+}
+audio.src = songs[0].url;
+document.getElementById('sp-title').innerText = songs[0].title;
+document.getElementById('sp-cover').src = songs[0].cover;
+
+function closeModal(e, id) { if(e.target.id === id) document.getElementById(id).style.display='none'; }
+function openMemberModal(name, img) {
+    document.getElementById('modal-member-name').innerText = name;
+    document.getElementById('modal-member-img').src = img;
     document.getElementById('member-modal').style.display = 'flex';
 }
-
-function openPhotoModal(src, id) {
-    currentPhotoId = id;
-    document.getElementById('modal-photo-img').src = src;
-    document.getElementById('photo-modal').style.display = 'flex';
-    document.getElementById('modal-comments').innerHTML = "";
-
-    // Load comments
-    database.ref('comments/' + id).on('child_added', snap => {
-        const p = document.createElement('p');
-        p.innerHTML = `<strong>Bạn học</strong>${snap.val().msg}`;
-        document.getElementById('modal-comments').appendChild(p);
-    });
-
-    // Load reactions
-    database.ref('reactions/' + id).on('value', snap => {
-        let counts = {};
-        if(snap.val()) {
-            Object.values(snap.val()).forEach(e => counts[e] = (counts[e] || 0) + 1);
-            let html = "";
-            for(let e in counts) html += `<span>${e} ${counts[e]}</span>`;
-            document.getElementById('reaction-summary').innerHTML = html;
-        } else {
-            document.getElementById('reaction-summary').innerHTML = "";
-        }
-    });
-}
-
-// Chơi nhạc
-function playMusic(src) {
-    const audio = document.getElementById('audio-player');
-    audio.src = src;
-    audio.play();
-    document.getElementById('music-modal').style.display = 'none';
-}
-
-// Tính năng bình luận & Reaction
-function postComment() {
-    const msg = document.getElementById('new-comment').value;
-    if(msg && currentPhotoId) {
-        database.ref('comments/' + currentPhotoId).push({ msg });
-        document.getElementById('new-comment').value = "";
-        // Cuộn xuống cuối
-        const commentList = document.getElementById('modal-comments');
-        setTimeout(() => commentList.scrollTop = commentList.scrollHeight, 100);
-    }
-}
-
-function sendReaction(icon) {
-    if(currentPhotoId) {
-        database.ref('reactions/' + currentPhotoId).push(icon);
-    }
-}
-
-// Đóng modal khi bấm ra ngoài nền đen
-function closeModal(event, modalId) {
-    if (event.target.id === modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-}
-
-// Chống click chuột phải (Tùy chọn)
-document.addEventListener('contextmenu', e => e.preventDefault());
