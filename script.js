@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // === XỬ LÝ NHẠC ===
     const musicSelect = document.getElementById('bg-music-select');
     const audioPlayer = document.getElementById('audio-player');
     
@@ -12,50 +11,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // === TẠO DỮ LIỆU MẪU ===
-    // 1. Thành viên (15 người)
     const memberContainer = document.getElementById('member-container');
     for(let i=1; i<=15; i++) {
         let div = document.createElement('div');
         div.className = `member-card ${i > 9 ? 'hidden-item' : ''}`;
         div.onclick = () => openMemberModal(`Thành viên ${i}`);
-        div.innerHTML = `
-            <img src="https://via.placeholder.com/300x400.png?text=Anh+The+${i}" alt="Thành viên ${i}">
-            <h3>Thành viên ${i}</h3>
-        `;
+        div.innerHTML = `<img src="https://via.placeholder.com/300x400.png?text=Anh+${i}"><h3>Thành viên ${i}</h3>`;
         memberContainer.appendChild(div);
     }
 
-    // 2. Khoảnh khắc (12 ảnh)
     const momentContainer = document.getElementById('moment-container');
     for(let i=1; i<=12; i++) {
-        let reacts = Math.floor(Math.random() * 50) + 10;
         let div = document.createElement('div');
         div.className = `moment-card ${i > 6 ? 'hidden-item' : ''}`;
-        div.onclick = () => openPhotoModal(`https://via.placeholder.com/600x400.png?text=Ky+Niem+${i}`, reacts);
-        div.innerHTML = `
-            <img src="https://via.placeholder.com/600x400.png?text=Ky+Niem+${i}" alt="Khoảnh khắc">
-            <div class="moment-reacts"><i class="fa-solid fa-heart" style="color: red;"></i> ${reacts}</div>
-        `;
+        div.onclick = () => openPhotoModal(`https://via.placeholder.com/800x600.png?text=Ky+Niem+${i}`);
+        div.innerHTML = `<img src="https://via.placeholder.com/800x600.png?text=Ky+Niem+${i}">`;
         momentContainer.appendChild(div);
     }
 
-    // 3. Giấy note (10 note)
     const noteContainer = document.getElementById('note-container');
     for(let i=1; i<=10; i++) {
         let div = document.createElement('div');
         div.className = `note ${i > 5 ? 'hidden-item' : ''}`;
-        div.innerHTML = `Chúc mọi người luôn thành công trên con đường sắp tới! <br><br>- Bạn giấu tên ${i}`;
+        div.innerHTML = `Chúc mọi người luôn hạnh phúc! <br><br>- Bạn lớp mình ${i}`;
         noteContainer.appendChild(div);
     }
 });
 
-// === LOGIC CÁC HÀM TƯƠNG TÁC ===
-
 function showMore(containerId, btnId) {
-    const container = document.getElementById(containerId);
-    const hiddenItems = container.querySelectorAll('.hidden-item');
-    hiddenItems.forEach(item => item.classList.remove('hidden-item'));
+    document.getElementById(containerId).querySelectorAll('.hidden-item').forEach(item => item.classList.remove('hidden-item'));
     document.getElementById(btnId).style.display = 'none';
 }
 
@@ -72,11 +56,9 @@ function openMemberModal(name) {
     document.getElementById('member-modal').style.display = 'flex';
 }
 
-let currentReacts = 0;
-function openPhotoModal(imgSrc, reacts) {
+function openPhotoModal(imgSrc) {
     document.getElementById('modal-photo-img').src = imgSrc;
-    currentReacts = reacts;
-    document.getElementById('react-count').innerText = currentReacts;
+    document.getElementById('modal-comments').innerHTML = ""; 
     document.getElementById('photo-modal').style.display = 'flex';
 }
 
@@ -84,9 +66,13 @@ function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
 
-function addReaction() {
-    currentReacts++;
-    document.getElementById('react-count').innerText = currentReacts;
+function react(emoji) {
+    const commentList = document.getElementById('modal-comments');
+    const newReact = document.createElement('p');
+    newReact.style.borderLeft = "4px solid var(--primary)";
+    newReact.innerHTML = `<strong>Bạn</strong> vừa thả: ${emoji}`;
+    commentList.appendChild(newReact);
+    commentList.scrollTop = commentList.scrollHeight;
 }
 
 function postComment() {
@@ -102,8 +88,4 @@ function postComment() {
     }
 }
 
-window.onclick = function(event) {
-    if (event.target.classList.contains('modal')) {
-        event.target.style.display = "none";
-    }
-};
+window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = "none"; };
