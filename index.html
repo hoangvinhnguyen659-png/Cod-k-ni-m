@@ -27,6 +27,7 @@
                 <div class="nav-links">
                     <a href="#thanh-vien">Thành viên</a>
                     <a href="#khoanh-khac">Ảnh</a>
+                    <a href="#dong-thoi-gian">Timeline</a>
                 </div>
             </div>
         </div>
@@ -47,6 +48,31 @@
         <h2 class="section-title">Khoảnh khắc đáng nhớ</h2>
         <div class="grid-moments" id="moment-container"></div>
         <button class="btn-xem-them" id="btn-more-moments" onclick="showMore('moment-container', 'btn-more-moments')">Xem thêm</button>
+    </section>
+
+    <section id="dong-thoi-gian" class="container">
+        <h2 class="section-title">Dòng thời gian</h2>
+        <div class="timeline-content" id="timeline-text">
+            <p><strong>Tháng 9/2020:</strong> Ngày đầu tiên bước vào lớp...</p><br>
+            <p><strong>Tháng 11/2021:</strong> Buổi cắm trại đầu tiên...</p><br>
+            <p><strong>Tháng 5/2023:</strong> Mùa phượng nở cuối cùng...</p>
+        </div>
+        <button class="btn-xem-them" id="btn-timeline" onclick="toggleTimeline()">Xem thêm</button>
+    </section>
+
+    <section id="phim-ngan" class="container">
+        <h2 class="section-title">Phim ngắn kỉ niệm</h2>
+        <div class="video-container">
+            <video controls style="width:100%; border-radius:15px;">
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            </video>
+        </div>
+    </section>
+
+    <section id="nhan-nhu" class="container" style="margin-bottom: 100px;">
+        <h2 class="section-title">Lời nhắn nhủ</h2>
+        <div class="grid-notes" id="note-container"></div>
+        <button class="btn-xem-them" id="btn-more-notes" onclick="showMore('note-container', 'btn-more-notes')">Xem thêm</button>
     </section>
 
     <div id="photo-modal" class="modal">
