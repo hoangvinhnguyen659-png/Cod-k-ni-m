@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cod kỉ niệm</title>
+    <title>Thanh Xuân Của Chúng Ta</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,48 +25,139 @@
 
     <nav>
         <div class="nav-container">
-            <a href="#" class="logo">Thanh xuân</a>
+            <a href="#trang-chu" class="logo">Thanh Xuân</a>
+            <ul class="nav-links">
+                <li><a href="#trang-chu">Trang chủ</a></li>
+                <li><a href="#thanh-vien">Thành viên</a></li>
+                <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
+                <li><a href="#dong-thoi-gian">Dòng thời gian</a></li>
+                <li><a href="#luu-but">Lưu bút</a></li>
+            </ul>
             <div class="nav-right">
-                <div class="music-player">
-                    <select id="bg-music-select">
-                        <option value="">🎵 Nhạc</option>
-                        <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Kỉ niệm 1</option>
-                    </select>
-                    <audio id="audio-player" loop></audio>
-                </div>
+                <button class="btn-menu" onclick="document.getElementById('music-modal').style.display='flex'">🎵 Nhạc</button>
                 <button class="btn-logout" onclick="firebase.auth().signOut()">Thoát</button>
             </div>
         </div>
     </nav>
 
     <section id="trang-chu">
-        <h1>Thanh xuân của chúng ta</h1>
+        <div class="hero-content">
+            <h1>Thanh Xuân Của Chúng Ta</h1>
+            <p>"Những năm tháng rực rỡ dưới mái trường thân yêu"</p>
+        </div>
     </section>
 
-    <section class="container">
-        <h2 class="section-title">Thành viên lớp</h2>
-        <div class="grid-members" id="member-container"></div>
+    <section id="thanh-vien" class="container">
+        <h2 class="section-title">Thành Viên</h2>
+        <div class="grid-members" id="member-container">
+            </div>
     </section>
 
-    <section class="container">
+    <section id="khoanh-khac" class="container">
         <h2 class="section-title">Khoảnh khắc</h2>
-        <div class="grid-moments" id="moment-container"></div>
+        <div class="grid-moments" id="moment-container">
+            </div>
     </section>
+
+    <section id="dong-thoi-gian" class="container">
+        <h2 class="section-title">Dòng Thời Gian</h2>
+        <div class="timeline" id="timeline-container">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>Tháng 8, 2021</h3>
+                    <h4>Ngày Tựu Trường</h4>
+                    <p>Gặp lại bạn bè sau kỳ nghỉ hè, những câu chuyện chưa kể và tiếng cười rộn rã.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>Tháng 5, 2024</h3>
+                    <h4>Lễ Trưởng Thành</h4>
+                    <p>Bắt đầu hành trình cuối cùng dưới mái trường.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="phim-ngan" class="container">
+        <h2 class="section-title">Phim Ngắn Kỷ Niệm</h2>
+        <div class="video-wrapper">
+            <iframe width="100%" height="450" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section id="luu-but" class="container">
+        <h2 class="section-title">Những Lời Nhắn Nhủ</h2>
+        <div class="grid-notes" id="notes-container">
+            <div class="note-card" style="background-color: #ffeb3b;">
+                <p>Chúc cả lớp thi tốt nhé! Sẽ nhớ mọi người lắm.</p>
+                <span>- An Bình</span>
+            </div>
+            <div class="note-card" style="background-color: #ffcdd2;">
+                <p>Thanh xuân có các bạn là điều tuyệt vời nhất.</p>
+                <span>- Linh Hà</span>
+            </div>
+            <div class="note-card" style="background-color: #b2ebf2;">
+                <p>Hãy sống một cuộc đời rực rỡ nhé! Đừng quên nhau.</p>
+                <span>- Lê Chi</span>
+            </div>
+        </div>
+    </section>
+
+    <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
+        <div class="modal-box member-detail-box">
+            <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
+            <img id="modal-member-img" src="" alt="Avatar">
+            <h3 id="modal-member-name">Tên Thành Viên</h3>
+            <p class="nickname" id="modal-member-nickname">Biệt danh</p>
+            <div class="info-group">
+                <i class="fa-solid fa-heart"></i>
+                <div>
+                    <strong>Sở thích:</strong>
+                    <p id="modal-member-hobbies">Đang cập nhật...</p>
+                </div>
+            </div>
+            <div class="info-group">
+                <i class="fa-solid fa-comment-dots"></i>
+                <div>
+                    <strong>Lời nhắn:</strong>
+                    <p id="modal-member-message">Đang cập nhật...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="music-modal" class="modal" onclick="closeModal(event, 'music-modal')">
+        <div class="modal-box music-box">
+            <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
+            <img src="https://via.placeholder.com/80" alt="Đĩa nhạc" style="border-radius:50%; width: 80px; margin-bottom: 15px;">
+            <h3>Chọn Nhạc Nền</h3>
+            <div class="music-list">
+                <div class="music-item" onclick="playMusic('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')">Tháng Năm Không Quên</div>
+                <div class="music-item" onclick="playMusic('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')">Năm Tháng Trôi Qua</div>
+                <div class="music-item" onclick="playMusic('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3')">Nhớ Mãi Chuyến Đi Này</div>
+            </div>
+            <audio id="audio-player" loop></audio>
+        </div>
+    </div>
 
     <div id="photo-modal" class="modal">
         <div class="modal-content photo-layout">
-            <span class="close-btn" onclick="closeModal('photo-modal')">&times;</span>
+            <span class="close-btn" onclick="document.getElementById('photo-modal').style.display='none'">&times;</span>
             <div class="modal-left">
                 <div class="image-wrapper">
                     <img id="modal-photo-img" src="">
-                    <div id="reaction-summary" class="reaction-summary"></div>
                 </div>
-                <div class="reaction-bar">
-                    <span onclick="sendReaction('👍')">👍</span>
-                    <span onclick="sendReaction('❤️')">❤️</span>
-                    <span onclick="sendReaction('😂')">😂</span>
-                    <span onclick="sendReaction('😮')">😮</span>
-                    <span onclick="sendReaction('😢')">😢</span>
+                <div class="reaction-bottom-bar">
+                    <div class="reactions-icons">
+                        <span onclick="sendReaction('👍')">👍</span>
+                        <span onclick="sendReaction('❤️')">❤️</span>
+                        <span onclick="sendReaction('😂')">😂</span>
+                        <span onclick="sendReaction('😢')">😢</span>
+                    </div>
+                    <div id="reaction-summary" class="reaction-summary"></div>
                 </div>
             </div>
             <div class="modal-right">
