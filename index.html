@@ -21,9 +21,9 @@
         <div class="modal-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
             <h2 style="margin-bottom: 5px;">Đăng nhập</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Tài khoản: ban[số_thứ_tự]@lop.com</p>
+            <p style="font-size: 12px; color: #888; margin-bottom: 20px;">Tài khoản: ban[số]@lop.com</p>
             
-            <input type="email" id="login-email" class="edit-input" placeholder="Ví dụ: ban23@lop.com">
+            <input type="email" id="login-email" class="edit-input" placeholder="Tài khoản">
             <input type="password" id="login-pass" class="edit-input" placeholder="Mật khẩu">
             
             <button class="btn-action" onclick="handleLogin()">Đăng nhập</button>
@@ -35,17 +35,17 @@
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
             
             <div class="now-playing-container">
-                <div id="np-icon" class="track-circle circle-cyan" style="width: 80px; height: 80px; margin: 0 auto 15px; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">1</div>
-                <div id="np-title" class="np-title" style="text-align: center; font-weight: 700; margin-bottom: 15px;">Đang phát: Tháng Năm Không Quên</div>
+                <div id="np-icon" class="track-circle circle-cyan" style="width: 70px; height: 70px; margin: 0 auto 15px; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">1</div>
+                <div id="np-title" style="text-align: center; font-weight: 700; margin-bottom: 15px; font-size: 0.9rem;">Đang phát: Lời Pháo Hoa Rực Rỡ</div>
                 
-                <div class="np-controls" style="display: flex; justify-content: center; gap: 30px; font-size: 1.5rem; margin-bottom: 20px;">
-                    <i class="fas fa-backward-step" onclick="prevSong()" style="cursor: pointer;"></i>
-                    <i id="play-pause-btn" class="fas fa-play" onclick="togglePlayMusic()" style="cursor: pointer;"></i>
-                    <i class="fas fa-forward-step" onclick="nextSong()" style="cursor: pointer;"></i>
+                <div class="music-controls">
+                    <i class="fas fa-backward-step" onclick="prevSong()"></i>
+                    <i id="play-pause-btn" class="fas fa-play" onclick="togglePlayMusic()"></i>
+                    <i class="fas fa-forward-step" onclick="nextSong()"></i>
                 </div>
             </div>
 
-            <div id="playlist-container">
+            <div id="playlist-container" class="playlist-scroll">
                 </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
                 <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">Nhạc</a></li>
             </ul>
             <div class="nav-right">
-                <button class="btn-logout" id="auth-btn" onclick="toggleAuth()">Đăng nhập</button>
+                <button class="btn-auth" id="auth-btn" onclick="toggleAuth()">Đăng nhập</button>
             </div>
         </div>
     </nav>
@@ -73,20 +73,20 @@
 
     <section id="thanh-vien" class="container">
         <h2 class="section-title">Thành Viên (42)</h2>
-        <div class="grid-members" id="member-container">
-            </div>
-        <button id="btn-load-more-members" class="btn-load-more" onclick="loadAllMembers()">Xem tất cả</button>
+        <div class="grid-members" id="member-container"></div>
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="btn-load-more-members" class="btn-secondary" onclick="loadAllMembers()">Xem tất cả thành viên</button>
+        </div>
     </section>
 
     <section id="khoanh-khac" class="container">
-        <div class="moment-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h2 class="section-title" style="margin: 0;">Khoảnh Khắc</h2>
-            <button id="add-moment-btn" class="btn-add-photo" onclick="uploadNewMoment()" style="display: none; background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 10px; cursor: pointer;">
-                <i class="fas fa-camera"></i> + Thêm ảnh
+            <button id="add-moment-btn" class="btn-auth" onclick="uploadNewMoment()" style="display: none; padding: 8px 15px; font-size: 0.85rem;">
+                + Thêm ảnh
             </button>
         </div>
-        <div class="grid-moments" id="moment-container">
-            </div>
+        <div class="grid-moments" id="moment-container"></div>
     </section>
 
     <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
@@ -94,87 +94,90 @@
             <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
             
             <div id="view-mode">
-                <div style="text-align: center;">
-                    <img id="modal-member-img" src="" style="width:110px; height:110px; border-radius:50%; object-fit:cover; display:none; margin: 0 auto 15px; border: 3px solid #f1f2f6;">
-                    <div id="modal-placeholder-avatar" class="placeholder-avatar" style="width:110px; height:110px; border-radius:50%; margin: 0 auto 15px; display:flex; align-items:center; justify-content:center; background:#eee; font-size:2rem; font-weight:bold;"></div>
-                    
-                    <h3 id="modal-member-name" style="font-size: 1.5rem; margin-bottom: 5px;"></h3>
-                    <p id="modal-member-nickname" style="color: #0984e3; font-weight: 600; margin-bottom: 20px; font-size: 0.9rem;"></p>
+                <div class="modal-avatar-wrapper">
+                    <img id="modal-member-img" src="" style="display:none;">
+                    <div id="modal-placeholder-avatar" class="placeholder-avatar"></div>
+                </div>
+
+                <div class="member-title-info">
+                    <h2 id="modal-member-name"></h2>
+                    <span id="modal-member-nickname"></span>
                 </div>
 
                 <div class="info-group hobbies-group">
-                    <div class="icon-box" style="color: #ff7675; width:30px;"><i class="fas fa-heart"></i></div>
                     <div class="info-text">
-                        <strong style="font-size: 0.75rem; color: #888;">SỞ THÍCH</strong>
+                        <strong>SỞ THÍCH</strong>
                         <p id="modal-member-hobbies"></p>
                     </div>
                 </div>
 
-                <div class="info-group message-group" style="margin-top: 15px;">
-                    <div class="icon-box" style="color: #3498db; width:30px;"><i class="fas fa-comment-alt"></i></div>
+                <div class="info-group message-group">
                     <div class="info-text">
-                        <strong style="font-size: 0.75rem; color: #888;">LỜI NHẮN</strong>
+                        <strong>LỜI NHẮN</strong>
                         <p id="modal-member-message"></p>
                     </div>
                 </div>
                 
-                <button id="btn-edit-profile" class="btn-action" style="display: none; margin-top: 20px;" onclick="enableEditMode()">Sửa hồ sơ</button>
+                <button id="btn-edit-profile" class="btn-action" style="display: none;" onclick="enableEditMode()">Chỉnh sửa thông tin</button>
             </div>
 
             <div id="edit-mode" style="display: none;">
-                <h3 style="text-align: center; margin-bottom: 10px;">Cập Nhật Hồ Sơ</h3>
+                <h3 style="text-align: center; margin-bottom: 20px;">Cập Nhật Hồ Sơ</h3>
                 
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <button type="button" class="btn-action" style="background: #fff0f0; color: #d63031; border: 1px solid #fab1a0; width: auto; padding: 5px 15px; font-size: 0.8rem;" onclick="removeCurrentAvatar()">
-                        <i class="fas fa-trash-can"></i> Gỡ ảnh hiện tại
-                    </button>
+                <label class="edit-label">Họ và Tên:</label>
+                <input type="text" id="edit-name" placeholder="Tên của bạn" class="edit-input">
+                
+                <label class="edit-label">Biệt danh:</label>
+                <input type="text" id="edit-nickname" placeholder="Biệt danh" class="edit-input">
+                
+                <input type="file" id="edit-file-input" accept="image/*" style="display: none;">
+                
+                <input type="hidden" id="edit-avatar">
+                
+                <label class="edit-label">Sở thích:</label>
+                <textarea id="edit-hobbies" placeholder="Sở thích..." class="edit-input" rows="2"></textarea>
+                
+                <label class="edit-label">Lời nhắn:</label>
+                <textarea id="edit-message" placeholder="Lời nhắn..." class="edit-input" rows="2"></textarea>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-action" style="flex: 2;" onclick="saveProfile()">Lưu thay đổi</button>
+                    <button class="btn-secondary" style="flex: 1; margin: 0;" onclick="cancelEditMode()">Hủy</button>
                 </div>
 
-                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Tên hiển thị:</label>
-                <input type="text" id="edit-name" placeholder="Họ và Tên thật" class="edit-input">
-                
-                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Biệt danh:</label>
-                <input type="text" id="edit-nickname" placeholder="Biệt danh (VD: Bồ Câu)" class="edit-input">
-                
-                <label style="font-size: 0.8rem; font-weight: bold; color: #d63031;">Tải ảnh mới từ máy (Telegram):</label>
-                <input type="file" id="edit-file-input" accept="image/*" class="edit-input" style="padding: 10px 0;">
-                
-                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Hoặc dán URL ảnh cũ:</label>
-                <input type="text" id="edit-avatar" placeholder="Link ảnh đại diện (URL)" class="edit-input">
-                
-                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Sở thích & Lời nhắn:</label>
-                <textarea id="edit-hobbies" placeholder="Sở thích của bạn..." class="edit-input" rows="2"></textarea>
-                <textarea id="edit-message" placeholder="Lời nhắn gửi lớp..." class="edit-input" rows="2"></textarea>
-                
-                <button class="btn-action" onclick="saveProfile()">Lưu vĩnh viễn ✨</button>
-                <button class="btn-action" style="background: #eee; color: #333; margin-top: 10px;" onclick="cancelEditMode()">Hủy bỏ</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span style="font-size: 12px; color: #e74c3c; cursor: pointer; font-weight: bold;" onclick="removeCurrentAvatar()">Gỡ ảnh đại diện</span>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="moment-modal" class="modal" onclick="closeModal(event, 'moment-modal')">
-        <div class="modal-box" style="max-width: 600px; padding: 20px;">
+        <div class="modal-box" style="max-width: 500px; padding: 15px;">
             <span class="close-btn" onclick="document.getElementById('moment-modal').style.display='none'">&times;</span>
             
             <div style="position: relative; text-align: center;">
-                <button class="nav-arrow prev" onclick="changeMoment(-1)" style="left: 0;">&#10094;</button>
-                <img id="zoom-img" src="" style="width: 100%; border-radius: 15px; max-height: 70vh; object-fit: contain;">
-                <button class="nav-arrow next" onclick="changeMoment(1)" style="right: 0;">&#10095;</button>
+                <img id="zoom-img" src="" style="width: 100%; border-radius: 15px; max-height: 65vh; object-fit: contain; box-shadow: var(--shadow);">
+                
+                <div style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 10px;">
+                    <i class="fas fa-chevron-left" onclick="changeMoment(-1)" style="color: white; font-size: 2rem; cursor: pointer; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
+                    <i class="fas fa-chevron-right" onclick="changeMoment(1)" style="color: white; font-size: 2rem; cursor: pointer; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
+                </div>
             </div>
 
-            <div class="reaction-bar" style="display: flex; justify-content: space-around; padding: 15px 0; font-size: 2rem;">
-                <span style="cursor: pointer;" onclick="addReaction('love')">❤️</span>
-                <span style="cursor: pointer;" onclick="addReaction('haha')">😆</span>
-                <span style="cursor: pointer;" onclick="addReaction('wow')">😮</span>
-                <span style="cursor: pointer;" onclick="addReaction('sad')">😢</span>
-                <span style="cursor: pointer;" onclick="addReaction('angry')">😡</span>
+            <div class="reaction-bar">
+                <span class="react-item" onclick="addReaction('love')">❤️</span>
+                <span class="react-item" onclick="addReaction('haha')">😆</span>
+                <span class="react-item" onclick="addReaction('wow')">😮</span>
+                <span class="react-item" onclick="addReaction('sad')">😢</span>
+                <span class="react-item" onclick="addReaction('angry')">😡</span>
             </div>
             
-            <div id="zoom-reaction-stats" style="text-align: center; font-weight: bold; background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 15px;"></div>
+            <div id="zoom-reaction-stats" class="stats-bar"></div>
 
-            <div style="text-align: center;">
-                <button id="btn-delete-moment" class="btn-action" style="display: none; background: #ff7675; width: auto; padding: 8px 20px; font-size: 0.9rem;" onclick="deleteMoment()">
-                    <i class="fas fa-trash-alt"></i> Xóa ảnh kỷ niệm này
+            <div style="text-align: center; margin-top: 15px;">
+                <button id="btn-delete-moment" class="btn-secondary" style="color: #e74c3c; display: none;" onclick="deleteMoment()">
+                    <i class="fas fa-trash-alt"></i> Xóa ảnh này
                 </button>
             </div>
         </div>
