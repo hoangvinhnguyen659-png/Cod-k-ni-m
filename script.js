@@ -7,114 +7,145 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
-const auth = firebase.auth();
 
-// Các mảng dữ liệu trống, đợi bạn tự thêm sau
+// Tạo mảng mặc định 42 học sinh
 let allMembers = [];
-let allMoments = [];
-let allNotes = [];
+for (let i = 1; i <= 42; i++) {
+    allMembers.push({ 
+        id: i, 
+        name: `Thành viên ${i}`, 
+        avatar: '', 
+        hobbies: 'Chưa cập nhật thông tin.' 
+    });
+}
 
-const iconEdit = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="custom-icon-large"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+let isLoggedIn = false;
+let currentEditingId = null;
 
-// Load Thành viên từ Firebase (hiện tại sẽ chỉ lấy đúng số lượng thực tế có trên DB)
+// Lấy dữ liệu từ Firebase và ghi đè lên mảng mặc định
 database.ref('users').on('value', snap => {
-    allMembers = [];
     if (snap.exists()) {
-        snap.forEach(child => { allMembers.push({...child.val(), id: child.key}); });
+        const dbData = snap.val();
+        for (const key in dbData) {
+            const index = allMembers.findIndex(m => m.id == key);
+            if (index !== -1) {
+                // Ghi đè dữ liệu từ DB vào vị trí tương ứng
+                allMembers[index] = { ...allMembers[index], ...dbData[key] };
+            }
+        }
     }
     renderMembers();
 });
 
-// Hàm hiển thị thành viên
 function renderMembers() {
     const container = document.getElementById('member-container');
+    container.innerHTML = '';
     
-    // Nút Sửa Profile vẫn giữ lại để thao tác
-    container.innerHTML = `<div class="member-card add-btn" onclick="updateProfile()">${iconEdit}<p>Sửa Profile</p></div>`;
-    
-    // Nếu có dữ liệu sẽ render ra, nếu mảng trống thì vòng lặp này sẽ bị bỏ qua
     allMembers.forEach(m => {
-        let avatarTag = m.avatar ? `<img src="${m.avatar}" alt="Avatar">` : '';
-        container.innerHTML += `<div class="member-card" onclick="openMemberModal('${m.name}', '${m.avatar || ''}')">
-            ${avatarTag}
-            <div class="member-name-plate">${m.name}</div>
-        </div>`;
+        // Nếu có ảnh thì hiện ảnh, không thì hiện số thứ tự làm avatar
+        let avatarTag = m.avatar 
+            ? `<img src="${m.avatar}" alt="Avatar">` 
+            : `<div class="placeholder-avatar">${m.id}</div>`;
+
+        container.innerHTML += `
+            <div class="member-card" onclick="openMemberModal(${m.id})">
+                ${avatarTag}
+                <div class="member-name-plate">${m.name}</div>
+            </div>`;
     });
 }
 
-// Hàm hiển thị khoảnh khắc (đã làm sạch)
-function renderMoments() {
-    const container = document.getElementById('moment-container');
-    container.innerHTML = '';
+// Xử lý Modal Thành Viên
+function openMemberModal(id) {
+    currentEditingId = id;
+    const member = allMembers.find(m => m.id === id);
     
-    allMoments.forEach(imgUrl => {
-        container.innerHTML += `<div class="moment-card"><img src="${imgUrl}" alt="Khoảnh khắc"></div>`;
-    });
-}
-
-// Hàm hiển thị lưu bút (đã làm sạch)
-function renderNotes() {
-    const container = document.getElementById('notes-container');
-    container.innerHTML = '';
+    // Đổ dữ liệu vào giao diện Xem
+    document.getElementById('modal-member-name').innerText = member.name;
+    document.getElementById('modal-member-hobbies').innerText = member.hobbies;
     
-    allNotes.forEach(n => {
-        container.innerHTML += `<div class="note-card" style="background:${n.color || '#fff'}"><p>"${n.msg}"</p><span>- ${n.author}</span></div>`;
-    });
+    const imgElement = document.getElementById('modal-member-img');
+    const placeholderElement = document.getElementById('modal-placeholder-avatar');
+    
+    if (member.avatar) {
+        imgElement.src = member.avatar;
+        imgElement.style.display = 'block';
+        placeholderElement.style.display = 'none';
+    } else {
+        imgElement.style.display = 'none';
+        placeholderElement.innerText = member.id;
+        placeholderElement.style.display = 'flex';
+    }
+
+    // Hiển thị nút sửa nếu đã đăng nhập
+    document.getElementById('btn-edit-profile').style.display = isLoggedIn ? 'block' : 'none';
+    
+    // Mặc định luôn bật chế độ Xem
+    cancelEditMode();
+    document.getElementById('member-modal').style.display = 'flex';
 }
 
-// Chạy lần đầu để setup giao diện rỗng
-renderMoments();
-renderNotes();
+function enableEditMode() {
+    const member = allMembers.find(m => m.id === currentEditingId);
+    document.getElementById('edit-name').value = member.name.includes("Thành viên") ? "" : member.name;
+    document.getElementById('edit-avatar').value = member.avatar;
+    document.getElementById('edit-hobbies').value = member.hobbies === 'Chưa cập nhật thông tin.' ? "" : member.hobbies;
 
-// Nhạc Spotify (Trạng thái rỗng)
-const audio = document.getElementById('audio-player');
-function togglePlay() { 
-    if(!audio.src) {
-        alert("Hiện chưa có bài hát nào được thiết lập.");
-        return;
-    }
-    if(audio.paused) { 
-        audio.play(); 
-        document.getElementById('play-icon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; 
-    } else { 
-        audio.pause(); 
-        document.getElementById('play-icon').innerHTML = '<path d="M8 5v14l11-7z"/>'; 
+    document.getElementById('view-mode').style.display = 'none';
+    document.getElementById('edit-mode').style.display = 'block';
+}
+
+function cancelEditMode() {
+    document.getElementById('view-mode').style.display = 'block';
+    document.getElementById('edit-mode').style.display = 'none';
+}
+
+function saveProfile() {
+    const newName = document.getElementById('edit-name').value.trim() || `Thành viên ${currentEditingId}`;
+    const newAvatar = document.getElementById('edit-avatar').value.trim();
+    const newHobbies = document.getElementById('edit-hobbies').value.trim() || 'Chưa cập nhật thông tin.';
+
+    // Đẩy dữ liệu lên Firebase đúng vào ID (từ 1 đến 42)
+    database.ref('users/' + currentEditingId).set({
+        name: newName,
+        avatar: newAvatar,
+        hobbies: newHobbies
+    }).then(() => {
+        alert("Cập nhật thành công!");
+        openMemberModal(currentEditingId); // Reload lại modal đang xem
+    }).catch(err => alert("Lỗi: " + err));
+}
+
+// Xử lý Đăng Nhập giả lập (Bạn có thể tích hợp Firebase Auth thật vào đây)
+function toggleAuth() {
+    if (isLoggedIn) {
+        isLoggedIn = false;
+        document.getElementById('auth-btn').innerText = "Đăng nhập";
+        alert("Đã đăng xuất.");
+        document.getElementById('member-modal').style.display = 'none'; // Tắt modal nếu đang mở
+    } else {
+        document.getElementById('login-mask').style.display = 'flex';
     }
 }
 
-// Các hàm đóng mở Modal & Giao diện
+function handleLogin() {
+    // Để cho code chạy ngay lập tức, đây là giả lập đăng nhập thành công.
+    isLoggedIn = true;
+    document.getElementById('login-mask').style.display = 'none';
+    document.getElementById('auth-btn').innerText = "Đăng xuất";
+    alert("Đăng nhập thành công! Bạn có thể nhấn vào thẻ số thứ tự của bạn để cập nhật ảnh và sở thích.");
+}
+
 function closeModal(e, id) { 
     if(e.target.id === id) document.getElementById(id).style.display='none'; 
 }
 
-function openMemberModal(name, img) {
-    document.getElementById('modal-member-name').innerText = name;
-    
-    const imgElement = document.getElementById('modal-member-img');
-    if (img) {
-        imgElement.src = img;
-        imgElement.style.display = 'block';
-    } else {
-        imgElement.style.display = 'none';
-    }
-    
-    document.getElementById('member-modal').style.display = 'flex';
-}
+// Render dữ liệu trống cho Khoảnh Khắc và Lưu Bút
+document.getElementById('moment-container').innerHTML = '<p style="text-align:center; width: 100%; grid-column: 1 / -1;">Chưa có ảnh nào.</p>';
+document.getElementById('notes-container').innerHTML = '<p style="text-align:center; width: 100%; grid-column: 1 / -1;">Chưa có lời nhắn nào.</p>';
 
-function toggleAuth() {
-    document.getElementById('login-mask').style.display = 'flex';
+// Nhạc Spotify (Trạng thái rỗng)
+const audio = document.getElementById('audio-player');
+function togglePlay() { 
+    alert("Hiện chưa có bài hát nào được thiết lập.");
 }
-
-function handleLogin() {
-    // Logic đăng nhập thêm sau
-    alert("Chức năng đăng nhập sẽ được cập nhật!");
-}
-
-function updateProfile() {
-    // Logic cập nhật thêm sau
-    alert("Chức năng sửa thông tin sẽ được cập nhật!");
-}
-
-// Placeholder cho nút next/prev song
-function nextSong() { console.log('Chuyển bài hát tiếp theo'); }
-function prevSong() { console.log('Chuyển bài hát trước'); }
