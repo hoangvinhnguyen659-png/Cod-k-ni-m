@@ -12,7 +12,6 @@ const database = firebase.database();
 // 2. BIẾN TOÀN CỤC
 let allMembers = [];
 for (let i = 1; i <= 42; i++) {
-    // Thêm mặc định mục message (Lời nhắn)
     allMembers.push({ 
         id: i, 
         name: `Thành viên ${i}`, 
@@ -25,12 +24,11 @@ for (let i = 1; i <= 42; i++) {
 let allMoments = [];
 let loggedInUserId = null;
 let currentEditingId = null;
-let currentMomentIdx = 0; // Lưu vị trí ảnh đang xem để chuyển ảnh
+let currentMomentIdx = 0; 
 let visibleMembersCount = 9;
 
-// 3. KHỞI TẠO & LẮNG NGHE DỮ LIỆU REALTIME
+// 3. KHỞI TẠO
 function init() {
-    // Theo dõi dữ liệu Thành viên
     database.ref('users').on('value', snap => {
         if (snap.exists()) {
             const data = snap.val();
@@ -42,7 +40,6 @@ function init() {
         renderMembers();
     });
 
-    // Theo dõi dữ liệu Khoảnh khắc (Moments)
     database.ref('moments').on('value', snap => {
         allMoments = [];
         if (snap.exists()) {
@@ -52,7 +49,6 @@ function init() {
             }
         }
         renderMoments();
-        // Nếu đang mở modal ảnh thì cập nhật số lượt thả tim ngay lập tức
         if (document.getElementById('moment-modal').style.display === 'flex') {
             updateZoomStats(allMoments[currentMomentIdx].reactions || {});
         }
@@ -84,12 +80,11 @@ function loadAllMembers() {
     showToast("Đã hiện tất cả 42 thành viên!");
 }
 
-// 5. MODAL CHI TIẾT & CHỈNH SỬA (CÓ LỜI NHẮN)
+// 5. MODAL CHI TIẾT
 function openMemberModal(id) {
     currentEditingId = id;
     const m = allMembers.find(x => x.id === id);
     
-    // Đổ dữ liệu vào giao diện xem
     document.getElementById('modal-member-name').innerText = m.name;
     document.getElementById('modal-member-hobbies').innerText = m.hobbies;
     document.getElementById('modal-member-message').innerText = m.message || 'Yêu cả nhà!';
@@ -103,7 +98,6 @@ function openMemberModal(id) {
         img.style.display = 'none'; placeholder.innerText = m.id; placeholder.style.display = 'flex';
     }
 
-    // Phân quyền: Chỉ chủ tài khoản mới thấy nút sửa
     document.getElementById('btn-edit-profile').style.display = (loggedInUserId === id) ? 'block' : 'none';
     
     cancelEditMode();
@@ -112,7 +106,6 @@ function openMemberModal(id) {
 
 function enableEditMode() {
     const m = allMembers.find(x => x.id === currentEditingId);
-    // Hỗ trợ gõ tiếng Việt có dấu
     document.getElementById('edit-name').value = m.name.includes("Thành viên") ? "" : m.name;
     document.getElementById('edit-avatar').value = m.avatar;
     document.getElementById('edit-hobbies').value = m.hobbies === 'Chưa cập nhật.' ? "" : m.hobbies;
@@ -141,7 +134,7 @@ function cancelEditMode() {
     document.getElementById('edit-mode').style.display = 'none';
 }
 
-// 6. KHOẢNH KHẮC (MOMENTS) - CHUYỂN ẢNH & THẢ TIM CUSTOM
+// 6. KHOẢNH KHẮC
 function renderMoments() {
     const container = document.getElementById('moment-container');
     if (!container) return;
@@ -174,7 +167,6 @@ function changeMoment(step) {
 
 function addReaction(type) {
     const m = allMoments[currentMomentIdx];
-    // Dùng transaction để không bị mất dữ liệu khi nhiều người thả tim cùng lúc
     database.ref(`moments/${m.id}/reactions/${type}`).transaction(count => (count || 0) + 1);
     showToast("Cảm ơn bạn đã tương tác! ❤️");
 }
@@ -192,16 +184,13 @@ function uploadNewMoment() {
     const url = prompt("Dán link ảnh (URL) bạn muốn chia sẻ:");
     if (url && url.startsWith('http')) {
         const newRef = database.ref('moments').push();
-        newRef.set({ 
-            url: url, 
-            reactions: { love: 0 } 
-        }).then(() => showToast("Đã thêm ảnh vào kho kỷ niệm!"));
+        newRef.set({ url: url, reactions: { love: 0 } }).then(() => showToast("Đã thêm ảnh vào kho kỷ niệm!"));
     } else if (url) {
         alert("Link ảnh không hợp lệ!");
     }
 }
 
-// 7. ĐĂNG NHẬP / ĐĂNG XUẤT
+// 7. ĐĂNG NHẬP
 function handleLogin() {
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
@@ -213,7 +202,7 @@ function handleLogin() {
         document.getElementById('auth-btn').innerText = "Đăng xuất";
         showToast(`Chào mừng bạn số ${loggedInUserId} quay trở lại!`);
     } else { 
-        showToast("Sai tài khoản (Ví dụ: ban1@lop.com) hoặc mật khẩu!"); 
+        showToast("Sai tài khoản hoặc mật khẩu!"); 
     }
 }
 
@@ -228,10 +217,10 @@ function toggleAuth() {
     }
 }
 
-// 8. NHẠC & TIỆN ÍCH
+// 8. CẬP NHẬT GIAO DIỆN NHẠC (THEO MÀU SẮC TRONG ẢNH)
 const songs = [
-    { title: "Lời Pháo Hoa Rực Rỡ", img: "https://placehold.co/100/ff7675/white?text=1", src: "" },
-    { title: "Tháng Năm Không Quên", img: "https://placehold.co/100/74b9ff/white?text=2", src: "" }
+    { title: "Lời Pháo Hoa Rực Rỡ", color: "#ff7675", src: "" },
+    { title: "Tháng Năm Không Quên", color: "#74b9ff", src: "" }
 ];
 let currentSongIdx = 0;
 const audio = document.getElementById('main-audio');
@@ -241,21 +230,33 @@ function loadPlaylist() {
     if(!container) return;
     container.innerHTML = '';
     songs.forEach((s, i) => {
-        container.innerHTML += `<div class="playlist-item" onclick="playSong(${i})"><img src="${s.img}"><p>${s.title}</p></div>`;
+        container.innerHTML += `
+        <div class="playlist-item" onclick="playSong(${i})">
+            <div class="song-icon" style="background-color: ${s.color};">${i + 1}</div>
+            <p>${s.title}</p>
+        </div>`;
     });
+    // Set mặc định giao diện bài hát đầu tiên
+    playSong(0, false); 
 }
 
-function playSong(idx) {
+function playSong(idx, autoPlay = true) {
     currentSongIdx = idx;
     const s = songs[idx];
-    document.getElementById('np-img').src = s.img;
+    
+    const npIcon = document.getElementById('np-icon');
+    npIcon.style.backgroundColor = s.color;
+    npIcon.innerText = idx + 1;
     document.getElementById('np-title').innerText = s.title;
-    if(s.src) { 
-        audio.src = s.src; 
-        audio.play(); 
-        document.getElementById('play-pause-btn').innerText = "⏸️";
-    } else { 
-        showToast("Đang giả lập phát: " + s.title); 
+
+    if(autoPlay) {
+        if(s.src) { 
+            audio.src = s.src; 
+            audio.play(); 
+            document.getElementById('play-pause-btn').innerText = "⏸️";
+        } else { 
+            showToast("Đang giả lập phát: " + s.title); 
+        }
     }
 }
 
@@ -263,11 +264,11 @@ function togglePlayMusic() {
     if(audio.paused && audio.src) {
         audio.play();
         document.getElementById('play-pause-btn').innerText = "⏸️";
-    } else if(!audio.paused) {
+    } else if(!audio.paused && audio.src) {
         audio.pause();
         document.getElementById('play-pause-btn').innerText = "▶️";
     } else {
-        playSong(0);
+        playSong(currentSongIdx);
     }
 }
 
@@ -284,5 +285,5 @@ function closeModal(e, id) {
     if(e.target.id === id) document.getElementById(id).style.display = 'none'; 
 }
 
-// CHẠY LỆNH KHỞI TẠO
+// CHẠY KHỞI TẠO
 init();
