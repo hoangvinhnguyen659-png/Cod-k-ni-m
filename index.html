@@ -11,11 +11,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="toast" class="toast">Nội dung thông báo</div>
 
     <div id="login-mask" class="modal" onclick="closeModal(event, 'login-mask')">
         <div class="modal-box">
@@ -35,7 +35,7 @@
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
             
             <div class="now-playing-container">
-                <div id="np-icon" class="track-circle circle-cyan" style="width: 70px; height: 70px; margin: 0 auto 15px; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">1</div>
+                <div id="np-icon" class="track-circle circle-cyan">1</div>
                 <div id="np-title" style="text-align: center; font-weight: 700; margin-bottom: 15px; font-size: 0.9rem;">Đang phát: Lời Pháo Hoa Rực Rỡ</div>
                 
                 <div class="music-controls">
@@ -45,28 +45,29 @@
                 </div>
             </div>
 
-            <div id="playlist-container" class="playlist-scroll">
-                </div>
+            <div id="playlist-container" class="playlist-scroll"></div>
         </div>
     </div>
     <audio id="main-audio"></audio>
 
     <nav>
-        <div class="nav-container">
-            <a href="#" class="logo">Thanh Xuân</a>
-            <ul class="nav-links">
+        <div class="nav-container" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="#" class="logo" style="font-family: 'Dancing Script', cursive; font-size: 1.8rem; color: #00b894; text-decoration: none;">Thanh Xuân</a>
+            
+            <ul class="nav-links" style="display: flex; gap: 20px; list-style: none; margin: 0; padding: 0;">
                 <li><a href="#trang-chu">Trang chủ</a></li>
                 <li><a href="#thanh-vien">Thành viên</a></li>
                 <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
                 <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">Nhạc</a></li>
             </ul>
+
             <div class="nav-right">
                 <button class="btn-auth" id="auth-btn" onclick="toggleAuth()">Đăng nhập</button>
             </div>
         </div>
     </nav>
 
-    <div class="hero-content" id="trang-chu">
+    <div class="hero-content" id="trang-chu" style="text-align: center; padding: 100px 20px;">
         <h1>Thanh Xuân Của Chúng Ta</h1>
         <p>"Những năm tháng rực rỡ dưới mái trường thân yêu"</p>
     </div>
@@ -131,7 +132,6 @@
                 <input type="text" id="edit-nickname" placeholder="Biệt danh" class="edit-input">
                 
                 <input type="file" id="edit-file-input" accept="image/*" style="display: none;">
-                
                 <input type="hidden" id="edit-avatar">
                 
                 <label class="edit-label">Sở thích:</label>
@@ -140,9 +140,9 @@
                 <label class="edit-label">Lời nhắn:</label>
                 <textarea id="edit-message" placeholder="Lời nhắn..." class="edit-input" rows="2"></textarea>
                 
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-action" style="flex: 2;" onclick="saveProfile()">Lưu thay đổi</button>
-                    <button class="btn-secondary" style="flex: 1; margin: 0;" onclick="cancelEditMode()">Hủy</button>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-action" style="flex: 1; margin: 0; padding: 12px;" onclick="saveProfile()">Lưu</button>
+                    <button class="btn-secondary" style="flex: 1; margin: 0; padding: 12px; background: #eee;" onclick="cancelEditMode()">Hủy</button>
                 </div>
 
                 <div style="text-align: center; margin-top: 15px;">
@@ -157,7 +157,7 @@
             <span class="close-btn" onclick="document.getElementById('moment-modal').style.display='none'">&times;</span>
             
             <div style="position: relative; text-align: center;">
-                <img id="zoom-img" src="" style="width: 100%; border-radius: 15px; max-height: 65vh; object-fit: contain; box-shadow: var(--shadow);">
+                <img id="zoom-img" src="" style="width: 100%; border-radius: 15px; max-height: 65vh; object-fit: contain;">
                 
                 <div style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 10px;">
                     <i class="fas fa-chevron-left" onclick="changeMoment(-1)" style="color: white; font-size: 2rem; cursor: pointer; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
@@ -165,15 +165,15 @@
                 </div>
             </div>
 
-            <div class="reaction-bar">
-                <span class="react-item" onclick="addReaction('love')">❤️</span>
-                <span class="react-item" onclick="addReaction('haha')">😆</span>
-                <span class="react-item" onclick="addReaction('wow')">😮</span>
-                <span class="react-item" onclick="addReaction('sad')">😢</span>
-                <span class="react-item" onclick="addReaction('angry')">😡</span>
+            <div class="reaction-bar" style="display: flex; justify-content: center; gap: 15px; font-size: 1.5rem; margin-top: 15px;">
+                <span class="react-item" style="cursor:pointer;" onclick="addReaction('love')">❤️</span>
+                <span class="react-item" style="cursor:pointer;" onclick="addReaction('haha')">😆</span>
+                <span class="react-item" style="cursor:pointer;" onclick="addReaction('wow')">😮</span>
+                <span class="react-item" style="cursor:pointer;" onclick="addReaction('sad')">😢</span>
+                <span class="react-item" style="cursor:pointer;" onclick="addReaction('angry')">😡</span>
             </div>
             
-            <div id="zoom-reaction-stats" class="stats-bar"></div>
+            <div id="zoom-reaction-stats" class="stats-bar" style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #666;"></div>
 
             <div style="text-align: center; margin-top: 15px;">
                 <button id="btn-delete-moment" class="btn-secondary" style="color: #e74c3c; display: none;" onclick="deleteMoment()">
