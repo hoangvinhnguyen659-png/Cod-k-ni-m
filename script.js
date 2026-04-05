@@ -23,7 +23,8 @@ for (let i = 1; i <= 42; i++) {
 }
 
 let allMoments = [];
-let loggedInUserId = null;
+// Khôi phục ID đăng nhập từ trình duyệt nếu có
+let loggedInUserId = localStorage.getItem('user_id') ? parseInt(localStorage.getItem('user_id')) : null;
 let currentEditingId = null;
 let currentMomentIdx = 0; 
 let visibleMembersCount = 9;
@@ -36,9 +37,9 @@ const songs = [
 let currentSongIdx = 0;
 const audio = document.getElementById('main-audio');
 
-// 3. KHỞI TẠO
+// 3. KHỞI TẠO (ĐỒNG BỘ REALTIME)
 function init() {
-    // Lấy dữ liệu thành viên từ Firebase
+    // Lấy dữ liệu thành viên - Tự động cập nhật khi có ai đó sửa
     database.ref('users').on('value', snap => {
         if (snap.exists()) {
             const data = snap.val();
@@ -48,9 +49,11 @@ function init() {
             }
         }
         renderMembers();
+        // Nếu đang mở modal của ai đó, cập nhật nội dung modal ngay lập tức
+        if (currentEditingId) updateModalUI(currentEditingId);
     });
 
-    // Lấy dữ liệu khoảnh khắc
+    // Lấy dữ liệu khoảnh khắc - Tự động hiện ảnh mới khi có người đăng
     database.ref('moments').on('value', snap => {
         allMoments = [];
         if (snap.exists()) {
@@ -60,10 +63,20 @@ function init() {
             }
         }
         renderMoments();
+        // Cập nhật thống kê reaction nếu đang xem ảnh
+        if (document.getElementById('moment-modal').style.display === 'flex') {
+            const current = allMoments[currentMomentIdx];
+            if(current) updateZoomStats(current.reactions || {});
+        }
     });
 
+    // Kiểm tra trạng thái đăng nhập để hiện nút "Thêm ảnh"
+    if (loggedInUserId) {
+        document.getElementById('auth-btn').innerText = "Đăng xuất";
+        updateUploadButton();
+    }
+
     loadPlaylist();
-    updateUploadButton();
 }
 
 // 4. HIỂN THỊ THÀNH VIÊN
@@ -92,13 +105,19 @@ function loadAllMembers() {
 // 5. MODAL CHI TIẾT THÀNH VIÊN
 function openMemberModal(id) {
     currentEditingId = id;
+    updateModalUI(id);
+    cancelEditMode();
+    document.getElementById('member-modal').style.display = 'flex';
+}
+
+function updateModalUI(id) {
     const m = allMembers.find(x => x.id === id);
-    
-    // Cập nhật thông tin hiển thị
+    if (!m) return;
+
     document.getElementById('modal-member-name').innerText = m.name;
     document.getElementById('modal-member-nickname').innerText = m.nickname ? `@${m.nickname}` : '';
     document.getElementById('modal-member-hobbies').innerText = m.hobbies;
-    document.getElementById('modal-member-message').innerText = m.message || 'Yêu cả nhà!';
+    document.getElementById('modal-member-message').innerText = m.message;
     
     const img = document.getElementById('modal-member-img');
     const placeholder = document.getElementById('modal-placeholder-avatar');
@@ -109,11 +128,8 @@ function openMemberModal(id) {
         img.style.display = 'none'; placeholder.innerText = m.id; placeholder.style.display = 'flex';
     }
 
-    // Kiểm tra quyền sửa hồ sơ
+    // Chỉ hiện nút sửa nếu loggedInUserId khớp với ID thành viên đang xem
     document.getElementById('btn-edit-profile').style.display = (loggedInUserId === id) ? 'block' : 'none';
-    
-    cancelEditMode();
-    document.getElementById('member-modal').style.display = 'flex';
 }
 
 function enableEditMode() {
@@ -138,8 +154,8 @@ function saveProfile() {
     };
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
-        showToast("Đã lưu thay đổi thành công! ✨");
-        openMemberModal(currentEditingId);
+        showToast("Đã lưu lên hệ thống! ✨");
+        cancelEditMode();
     });
 }
 
@@ -181,7 +197,6 @@ function addReaction(type) {
     const m = allMoments[currentMomentIdx];
     if(!m) return;
     database.ref(`moments/${m.id}/reactions/${type}`).transaction(count => (count || 0) + 1);
-    showToast("❤️ Cảm ơn bạn đã tương tác!");
 }
 
 function updateZoomStats(reacts) {
@@ -197,7 +212,7 @@ function uploadNewMoment() {
     const url = prompt("Dán link ảnh (URL) bạn muốn chia sẻ:");
     if (url && url.startsWith('http')) {
         const newRef = database.ref('moments').push();
-        newRef.set({ url: url, reactions: { love: 0 } }).then(() => showToast("Đã thêm ảnh mới! 📸"));
+        newRef.set({ url: url, reactions: { love: 0 } }).then(() => showToast("Đã lưu ảnh mới! 📸"));
     }
 }
 
@@ -209,32 +224,30 @@ function handleLogin() {
     
     if (match && pass !== "") {
         loggedInUserId = parseInt(match[1]);
-        const user = allMembers.find(m => m.id === loggedInUserId);
-        
-        // Logic chào hỏi theo thứ tự ưu tiên: Tên thật > Biệt danh > Số thứ tự
-        let displayName = `bạn số ${loggedInUserId}`;
-        if (user && user.name && !user.name.includes("Thành viên")) {
-            displayName = user.name;
-        } else if (user && user.nickname) {
-            displayName = user.nickname;
-        }
+        // Lưu vào localStorage để không bị mất khi load lại trang
+        localStorage.setItem('user_id', loggedInUserId);
 
         document.getElementById('login-mask').style.display = 'none';
         document.getElementById('auth-btn').innerText = "Đăng xuất";
         updateUploadButton();
+        
+        const user = allMembers.find(m => m.id === loggedInUserId);
+        let displayName = user.nickname || user.name;
         showToast(`Chào mừng ${displayName} quay trở lại! ✨`);
     } else { 
-        showToast("Sai tài khoản hoặc mật khẩu!"); 
+        showToast("Thông tin đăng nhập không đúng!"); 
     }
 }
 
 function toggleAuth() {
     if (loggedInUserId) {
         loggedInUserId = null;
+        localStorage.removeItem('user_id'); // Xóa dấu vết khi đăng xuất
         document.getElementById('auth-btn').innerText = "Đăng nhập";
         updateUploadButton();
         showToast("Đã đăng xuất.");
         document.getElementById('member-modal').style.display = 'none';
+        location.reload(); // Reload để sạch dữ liệu
     } else { 
         document.getElementById('login-mask').style.display = 'flex'; 
     }
@@ -257,26 +270,23 @@ function loadPlaylist() {
             <div class="track-info"><span>${s.title}</span></div>
         </div>`;
     });
-    playSong(1, false); // Mặc định bài 2 như ảnh (index 1)
+    playSong(1, false); 
 }
 
 function playSong(idx, autoPlay = true) {
     currentSongIdx = idx;
     const s = songs[idx];
-    
     const npIcon = document.getElementById('np-icon');
-    npIcon.className = `track-circle ${s.class}`;
-    npIcon.innerText = s.id;
+    if (npIcon) {
+        npIcon.className = `track-circle ${s.class}`;
+        npIcon.innerText = s.id;
+    }
     document.getElementById('np-title').innerText = "Đang phát: " + s.title;
 
-    if(autoPlay) {
-        if(s.src) { 
-            audio.src = s.src; 
-            audio.play(); 
-            document.getElementById('play-pause-btn').className = 'fas fa-pause';
-        } else { 
-            showToast("Đang giả lập phát: " + s.title); 
-        }
+    if(autoPlay && s.src) {
+        audio.src = s.src; 
+        audio.play(); 
+        document.getElementById('play-pause-btn').className = 'fas fa-pause';
     }
 }
 
@@ -292,9 +302,6 @@ function togglePlayMusic() {
     }
 }
 
-function prevSong() { playSong(currentSongIdx > 0 ? currentSongIdx - 1 : songs.length - 1); }
-function nextSong() { playSong(currentSongIdx < songs.length - 1 ? currentSongIdx + 1 : 0); }
-
 // 9. TIỆN ÍCH
 function showToast(msg) {
     const t = document.getElementById("toast");
@@ -304,7 +311,10 @@ function showToast(msg) {
 }
 
 function closeModal(e, id) { 
-    if(e.target.id === id) document.getElementById(id).style.display = 'none'; 
+    if(e.target.id === id) {
+        document.getElementById(id).style.display = 'none'; 
+        if(id === 'member-modal') currentEditingId = null;
+    }
 }
 
 window.onload = init;
