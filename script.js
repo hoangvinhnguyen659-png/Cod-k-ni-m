@@ -8,7 +8,6 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Tạo mảng mặc định 42 học sinh
 let allMembers = [];
 for (let i = 1; i <= 42; i++) {
     allMembers.push({ 
@@ -19,17 +18,25 @@ for (let i = 1; i <= 42; i++) {
     });
 }
 
-let isLoggedIn = false;
+let loggedInUserId = null; // Sẽ lưu số thứ tự tài khoản nếu đăng nhập thành công
 let currentEditingId = null;
+let visibleMembersCount = 9; // Giới hạn hiển thị ban đầu
 
-// Lấy dữ liệu từ Firebase và ghi đè lên mảng mặc định
+// Hiển thị thông báo (Toast)
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.innerText = message;
+    toast.className = "toast show";
+    setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+}
+
+// Tải dữ liệu Firebase
 database.ref('users').on('value', snap => {
     if (snap.exists()) {
         const dbData = snap.val();
         for (const key in dbData) {
             const index = allMembers.findIndex(m => m.id == key);
             if (index !== -1) {
-                // Ghi đè dữ liệu từ DB vào vị trí tương ứng
                 allMembers[index] = { ...allMembers[index], ...dbData[key] };
             }
         }
@@ -37,12 +44,13 @@ database.ref('users').on('value', snap => {
     renderMembers();
 });
 
+// Load 9 thành viên, xếp ngang 3
 function renderMembers() {
     const container = document.getElementById('member-container');
     container.innerHTML = '';
     
-    allMembers.forEach(m => {
-        // Nếu có ảnh thì hiện ảnh, không thì hiện số thứ tự làm avatar
+    for (let i = 0; i < visibleMembersCount && i < allMembers.length; i++) {
+        const m = allMembers[i];
         let avatarTag = m.avatar 
             ? `<img src="${m.avatar}" alt="Avatar">` 
             : `<div class="placeholder-avatar">${m.id}</div>`;
@@ -52,15 +60,26 @@ function renderMembers() {
                 ${avatarTag}
                 <div class="member-name-plate">${m.name}</div>
             </div>`;
-    });
+    }
+
+    // Ẩn/hiện nút "Xem thêm"
+    const btnLoadMore = document.getElementById('btn-load-more');
+    if (visibleMembersCount >= allMembers.length) {
+        btnLoadMore.style.display = 'none';
+    } else {
+        btnLoadMore.style.display = 'block';
+    }
 }
 
-// Xử lý Modal Thành Viên
+function loadMoreMembers() {
+    visibleMembersCount += 9; // Load thêm 9 người mỗi lần
+    renderMembers();
+}
+
 function openMemberModal(id) {
     currentEditingId = id;
     const member = allMembers.find(m => m.id === id);
     
-    // Đổ dữ liệu vào giao diện Xem
     document.getElementById('modal-member-name').innerText = member.name;
     document.getElementById('modal-member-hobbies').innerText = member.hobbies;
     
@@ -77,10 +96,13 @@ function openMemberModal(id) {
         placeholderElement.style.display = 'flex';
     }
 
-    // Hiển thị nút sửa nếu đã đăng nhập
-    document.getElementById('btn-edit-profile').style.display = isLoggedIn ? 'block' : 'none';
+    // TÍNH NĂNG CHỈ TÀI KHOẢN ĐÓ MỚI ĐƯỢC SỬA
+    if (loggedInUserId === id) {
+        document.getElementById('btn-edit-profile').style.display = 'block';
+    } else {
+        document.getElementById('btn-edit-profile').style.display = 'none';
+    }
     
-    // Mặc định luôn bật chế độ Xem
     cancelEditMode();
     document.getElementById('member-modal').style.display = 'flex';
 }
@@ -105,47 +127,105 @@ function saveProfile() {
     const newAvatar = document.getElementById('edit-avatar').value.trim();
     const newHobbies = document.getElementById('edit-hobbies').value.trim() || 'Chưa cập nhật thông tin.';
 
-    // Đẩy dữ liệu lên Firebase đúng vào ID (từ 1 đến 42)
     database.ref('users/' + currentEditingId).set({
         name: newName,
         avatar: newAvatar,
         hobbies: newHobbies
     }).then(() => {
-        alert("Cập nhật thành công!");
-        openMemberModal(currentEditingId); // Reload lại modal đang xem
-    }).catch(err => alert("Lỗi: " + err));
+        showToast("Cập nhật thành công!");
+        openMemberModal(currentEditingId); 
+    }).catch(err => showToast("Lỗi: " + err));
 }
 
-// Xử lý Đăng Nhập giả lập (Bạn có thể tích hợp Firebase Auth thật vào đây)
+// Xử lý Đăng Nhập bằng định dạng ban[ID]@lop.com
 function toggleAuth() {
-    if (isLoggedIn) {
-        isLoggedIn = false;
+    if (loggedInUserId) {
+        loggedInUserId = null;
         document.getElementById('auth-btn').innerText = "Đăng nhập";
-        alert("Đã đăng xuất.");
-        document.getElementById('member-modal').style.display = 'none'; // Tắt modal nếu đang mở
+        showToast("Đã đăng xuất.");
+        document.getElementById('member-modal').style.display = 'none';
     } else {
         document.getElementById('login-mask').style.display = 'flex';
     }
 }
 
 function handleLogin() {
-    // Để cho code chạy ngay lập tức, đây là giả lập đăng nhập thành công.
-    isLoggedIn = true;
-    document.getElementById('login-mask').style.display = 'none';
-    document.getElementById('auth-btn').innerText = "Đăng xuất";
-    alert("Đăng nhập thành công! Bạn có thể nhấn vào thẻ số thứ tự của bạn để cập nhật ảnh và sở thích.");
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+    
+    // Tách lấy số thứ tự từ email (VD: ban23@lop.com -> Lấy ra số 23)
+    const match = email.match(/^ban(\d+)@lop\.com$/);
+
+    if (match && pass !== "") {
+        const id = parseInt(match[1]);
+        if (id >= 1 && id <= 42) {
+            loggedInUserId = id;
+            document.getElementById('login-mask').style.display = 'none';
+            document.getElementById('auth-btn').innerText = "Đăng xuất";
+            showToast(`Đăng nhập thành công tài khoản số ${id}! Bạn có thể sửa thẻ của mình.`);
+        } else {
+            showToast("Sai tài khoản! Số thứ tự phải từ 1 đến 42.");
+        }
+    } else {
+        showToast("Sai định dạng (Ví dụ: ban1@lop.com) hoặc thiếu mật khẩu!");
+    }
 }
 
 function closeModal(e, id) { 
     if(e.target.id === id) document.getElementById(id).style.display='none'; 
 }
 
-// Render dữ liệu trống cho Khoảnh Khắc và Lưu Bút
-document.getElementById('moment-container').innerHTML = '<p style="text-align:center; width: 100%; grid-column: 1 / -1;">Chưa có ảnh nào.</p>';
-document.getElementById('notes-container').innerHTML = '<p style="text-align:center; width: 100%; grid-column: 1 / -1;">Chưa có lời nhắn nào.</p>';
+// ===== PLAYLIST NHẠC (Thay cho thanh dưới đáy) =====
+const songs = [
+    { title: "Lời Pháo Hoa Rực Rỡ", img: "https://placehold.co/100x100/ff7675/white?text=1", src: "" },
+    { title: "Tháng Năm Không Quên", img: "https://placehold.co/100x100/74b9ff/white?text=2", src: "" },
+    { title: "Năm Tháng Trôi Qua", img: "https://placehold.co/100x100/55efc4/white?text=3", src: "" },
+    { title: "Nhớ Mãi Chuyến Đi Này", img: "https://placehold.co/100x100/fdcb6e/white?text=4", src: "" }
+];
+let currentSongIdx = 0;
+const audio = document.getElementById('main-audio');
 
-// Nhạc Spotify (Trạng thái rỗng)
-const audio = document.getElementById('audio-player');
-function togglePlay() { 
-    alert("Hiện chưa có bài hát nào được thiết lập.");
+function loadPlaylist() {
+    const container = document.getElementById('playlist-container');
+    container.innerHTML = '';
+    songs.forEach((s, i) => {
+        container.innerHTML += `
+            <div class="playlist-item" onclick="playSong(${i})">
+                <img src="${s.img}" alt="Thumb">
+                <p style="font-weight: 600; font-size: 14px;">${s.title}</p>
+            </div>
+        `;
+    });
 }
+
+function playSong(idx) {
+    currentSongIdx = idx;
+    const song = songs[idx];
+    document.getElementById('np-img').src = song.img;
+    document.getElementById('np-title').innerText = song.title;
+    
+    if(song.src) {
+        audio.src = song.src;
+        audio.play();
+        document.getElementById('play-pause-btn').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; 
+    } else {
+        showToast(`Đang giả lập phát: ${song.title} (Vì chưa điền link nhạc)`);
+    }
+}
+
+function togglePlayMusic() {
+    if(audio.paused && audio.src) {
+        audio.play();
+        document.getElementById('play-pause-btn').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; 
+    } else if (!audio.paused) {
+        audio.pause();
+        document.getElementById('play-pause-btn').innerHTML = '<path d="M8 5v14l11-7z"/>'; 
+    } else {
+        playSong(0);
+    }
+}
+
+function prevSong() { playSong(currentSongIdx > 0 ? currentSongIdx - 1 : songs.length - 1); }
+function nextSong() { playSong(currentSongIdx < songs.length - 1 ? currentSongIdx + 1 : 0); }
+
+loadPlaylist(); // Khởi tạo playlist ban đầu
