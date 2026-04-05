@@ -35,7 +35,7 @@
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
             
             <div class="now-playing-container">
-                <div id="np-circle" class="track-circle circle-cyan" style="width: 80px; height: 80px; margin: 0 auto 15px; font-size: 2rem;">1</div>
+                <div id="np-icon" class="track-circle circle-cyan" style="width: 80px; height: 80px; margin: 0 auto 15px; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">1</div>
                 <div id="np-title" class="np-title" style="text-align: center; font-weight: 700; margin-bottom: 15px;">Đang phát: Tháng Năm Không Quên</div>
                 
                 <div class="np-controls" style="display: flex; justify-content: center; gap: 30px; font-size: 1.5rem; margin-bottom: 20px;">
@@ -81,7 +81,9 @@
     <section id="khoanh-khac" class="container">
         <div class="moment-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 class="section-title" style="margin: 0;">Khoảnh Khắc</h2>
-            <button id="add-moment-btn" class="btn-add-photo" onclick="uploadNewMoment()" style="display: none; background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 10px;">+ Thêm ảnh</button>
+            <button id="add-moment-btn" class="btn-add-photo" onclick="uploadNewMoment()" style="display: none; background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 10px; cursor: pointer;">
+                <i class="fas fa-camera"></i> + Thêm ảnh
+            </button>
         </div>
         <div class="grid-moments" id="moment-container">
             </div>
@@ -94,14 +96,14 @@
             <div id="view-mode">
                 <div style="text-align: center;">
                     <img id="modal-member-img" src="" style="width:110px; height:110px; border-radius:50%; object-fit:cover; display:none; margin: 0 auto 15px; border: 3px solid #f1f2f6;">
-                    <div id="modal-placeholder-avatar" class="placeholder-avatar" style="width:110px; height:110px; border-radius:50%; margin: 0 auto 15px; display:flex;"></div>
+                    <div id="modal-placeholder-avatar" class="placeholder-avatar" style="width:110px; height:110px; border-radius:50%; margin: 0 auto 15px; display:flex; align-items:center; justify-content:center; background:#eee; font-size:2rem; font-weight:bold;"></div>
                     
                     <h3 id="modal-member-name" style="font-size: 1.5rem; margin-bottom: 5px;"></h3>
                     <p id="modal-member-nickname" style="color: #0984e3; font-weight: 600; margin-bottom: 20px; font-size: 0.9rem;"></p>
                 </div>
 
                 <div class="info-group hobbies-group">
-                    <div class="icon-box" style="color: #ff7675;"><i class="fas fa-heart"></i></div>
+                    <div class="icon-box" style="color: #ff7675; width:30px;"><i class="fas fa-heart"></i></div>
                     <div class="info-text">
                         <strong style="font-size: 0.75rem; color: #888;">SỞ THÍCH</strong>
                         <p id="modal-member-hobbies"></p>
@@ -109,7 +111,7 @@
                 </div>
 
                 <div class="info-group message-group" style="margin-top: 15px;">
-                    <div class="icon-box" style="color: #3498db;"><i class="fas fa-comment-alt"></i></div>
+                    <div class="icon-box" style="color: #3498db; width:30px;"><i class="fas fa-comment-alt"></i></div>
                     <div class="info-text">
                         <strong style="font-size: 0.75rem; color: #888;">LỜI NHẮN</strong>
                         <p id="modal-member-message"></p>
@@ -121,14 +123,25 @@
 
             <div id="edit-mode" style="display: none;">
                 <h3 style="text-align: center; margin-bottom: 20px;">Cập Nhật Hồ Sơ</h3>
+                
+                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Tên hiển thị:</label>
                 <input type="text" id="edit-name" placeholder="Họ và Tên thật" class="edit-input">
+                
+                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Biệt danh:</label>
                 <input type="text" id="edit-nickname" placeholder="Biệt danh (VD: Bồ Câu)" class="edit-input">
+                
+                <label style="font-size: 0.8rem; font-weight: bold; color: #d63031;">Tải ảnh mới từ máy (Telegram):</label>
+                <input type="file" id="edit-file-input" accept="image/*" class="edit-input" style="padding: 10px 0;">
+                
+                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Hoặc dán URL ảnh cũ:</label>
                 <input type="text" id="edit-avatar" placeholder="Link ảnh đại diện (URL)" class="edit-input">
+                
+                <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Sở thích & Lời nhắn:</label>
                 <textarea id="edit-hobbies" placeholder="Sở thích của bạn..." class="edit-input" rows="2"></textarea>
                 <textarea id="edit-message" placeholder="Lời nhắn gửi lớp..." class="edit-input" rows="2"></textarea>
                 
-                <button class="btn-action" onclick="saveProfile()">Lưu thay đổi</button>
-                <button class="btn-action" style="background: #eee; color: #333; margin-top: 10px;" onclick="cancelEditMode()">Hủy</button>
+                <button class="btn-action" onclick="saveProfile()">Lưu vĩnh viễn ✨</button>
+                <button class="btn-action" style="background: #eee; color: #333; margin-top: 10px;" onclick="cancelEditMode()">Hủy bỏ</button>
             </div>
         </div>
     </div>
