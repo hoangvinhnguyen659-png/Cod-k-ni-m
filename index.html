@@ -7,21 +7,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <div id="toast" class="toast">Nội dung thông báo</div>
+
     <div id="login-mask" class="modal-login" style="display: none;">
         <div class="login-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
-            <h2>Đăng nhập lớp mình</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Đăng nhập để cập nhật thông tin thẻ của bạn</p>
-            <input type="email" id="login-email" placeholder="Email (ban1@lop.com)">
+            <h2>Đăng nhập</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Tài khoản định dạng: ban[số_thứ_tự]@lop.com</p>
+            <input type="email" id="login-email" placeholder="Ví dụ: ban23@lop.com">
             <input type="password" id="login-pass" placeholder="Mật khẩu">
             <button onclick="handleLogin()">Đăng nhập</button>
         </div>
     </div>
+
+    <div id="music-modal" class="modal" onclick="closeModal(event, 'music-modal')" style="display: none;">
+        <div class="modal-box playlist-box">
+            <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
+            <div class="now-playing">
+                <img id="np-img" src="https://placehold.co/100x100/1dd1a1/white?text=Music" alt="Playing">
+                <div class="np-info">
+                    <h4 id="np-title">Chưa phát nhạc</h4>
+                    <div class="np-controls">
+                        <svg onclick="prevSong()" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                        <svg onclick="togglePlayMusic()" id="play-pause-btn" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <svg onclick="nextSong()" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </div>
+                </div>
+            </div>
+            <div class="playlist-items" id="playlist-container">
+                </div>
+        </div>
+    </div>
+    <audio id="main-audio" src=""></audio>
 
     <nav>
         <div class="nav-container">
@@ -29,8 +50,6 @@
             <ul class="nav-links">
                 <li><a href="#trang-chu">Trang chủ</a></li>
                 <li><a href="#thanh-vien">Thành viên</a></li>
-                <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
-                <li><a href="#luu-but">Lưu bút</a></li>
             </ul>
             <div class="nav-right">
                 <button class="btn-menu" onclick="document.getElementById('music-modal').style.display='flex'">
@@ -52,16 +71,7 @@
     <section id="thanh-vien" class="container">
         <h2 class="section-title">Thành Viên (Sĩ Số: 42)</h2>
         <div class="grid-members" id="member-container"></div>
-    </section>
-
-    <section id="khoanh-khac" class="container">
-        <h2 class="section-title">Khoảnh Khắc</h2>
-        <div class="grid-moments" id="moment-container"></div>
-    </section>
-
-    <section id="luu-but" class="container">
-        <h2 class="section-title">Những Lời Nhắn Nhủ</h2>
-        <div class="grid-notes" id="notes-container"></div>
+        <button id="btn-load-more" class="btn-load-more" onclick="loadMoreMembers()">Xem thêm</button>
     </section>
 
     <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
@@ -85,30 +95,13 @@
                 <h3>Cập Nhật Hồ Sơ</h3>
                 <input type="text" id="edit-name" placeholder="Họ và Tên của bạn" class="edit-input">
                 <input type="text" id="edit-avatar" placeholder="Link ảnh đại diện (URL)" class="edit-input">
-                <textarea id="edit-hobbies" placeholder="Sở thích, lời nhắn yêu cầu..." class="edit-input" rows="3"></textarea>
+                <textarea id="edit-hobbies" placeholder="Sở thích, lời nhắn..." class="edit-input" rows="3"></textarea>
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                     <button class="btn-action" onclick="saveProfile()">Lưu lại</button>
                     <button class="btn-action btn-cancel" onclick="cancelEditMode()">Hủy</button>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="spotify-player">
-        <div class="sp-left">
-            <div class="sp-info"><h4 id="sp-title">Chưa có bài hát</h4><p id="sp-artist">---</p></div>
-        </div>
-        <div class="sp-center">
-            <div class="sp-controls">
-                <svg onclick="prevSong()" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                <div id="sp-play-btn" onclick="togglePlay()">
-                    <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-                <svg onclick="nextSong()" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-            </div>
-            <input type="range" id="sp-progress-bar" value="0" max="100">
-        </div>
-        <audio id="audio-player"></audio>
     </div>
 
     <script src="script.js"></script>
