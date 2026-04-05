@@ -36,6 +36,7 @@ function init() {
         let tempMembers = [];
         for (let i = 1; i <= 42; i++) {
             tempMembers.push({ 
+                // Đã xóa lời nhắn và sở thích mặc định
                 id: i, name: `Thành viên ${i}`, nickname: '', avatar: '', 
                 hobbies: '', message: '' 
             });
@@ -182,6 +183,7 @@ function enableEditMode() {
         editAvatarArea.style.justifyContent = 'center';
         editAvatarArea.style.backgroundColor = '#f1f2f6';
         
+        // Đã xóa icon FontAwesome ở đây
         editAvatarArea.innerHTML = `
             <img id="edit-preview-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
             <div id="edit-preview-placeholder" style="font-size: 2.5rem; font-weight: bold; color: #a4b0be;"></div>
@@ -209,15 +211,15 @@ function enableEditMode() {
                 }
                 reader.readAsDataURL(file);
 
-                showToast("Đang tải ảnh lên... ⏳", "info");
+                showToast("Đang tải ảnh lên... ⏳");
                 if (saveBtn) { saveBtn.innerText = "Đang tải ảnh... ⏳"; saveBtn.disabled = true; }
                 
                 const fileId = await uploadPhotoToTelegram(file);
                 if (fileId) {
                     document.getElementById('edit-avatar').value = fileId;
-                    showToast("Tải ảnh xong! Nhấn 'Lưu' để hoàn tất. ✨", "success");
+                    showToast("Tải ảnh xong! Nhấn 'Lưu' để hoàn tất. ✨");
                 } else {
-                    showToast("Lỗi khi tải ảnh lên! 😥", "error");
+                    showToast("Lỗi khi tải ảnh lên! 😥");
                 }
                 if (saveBtn) { saveBtn.innerText = "Lưu"; saveBtn.disabled = false; }
             });
@@ -240,32 +242,20 @@ function enableEditMode() {
     document.getElementById('edit-mode').style.display = 'block';
 }
 
-// Đã cập nhật SweetAlert2 cho phần Gỡ ảnh đại diện
 function removeCurrentAvatar() {
-    Swal.fire({
-        title: 'Gỡ ảnh đại diện?',
-        text: "Bạn có chắc muốn gỡ ảnh đại diện hiện tại không?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#1dd1a1',
-        cancelButtonColor: '#ff6b6b',
-        confirmButtonText: 'Đồng ý',
-        cancelButtonText: 'Hủy'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById('edit-avatar').value = "";
-            document.getElementById('edit-file-input').value = "";
-            
-            const previewImg = document.getElementById('edit-preview-img');
-            const previewPlaceholder = document.getElementById('edit-preview-placeholder');
-            if (previewImg && previewPlaceholder) {
-                previewImg.style.display = 'none';
-                previewPlaceholder.innerText = currentEditingId;
-                previewPlaceholder.style.display = 'block';
-            }
-            showToast("Đã gỡ ảnh. Hãy nhấn 'Lưu' để hoàn tất.", "success");
-        }
-    });
+    if (!confirm("Bạn có chắc muốn gỡ ảnh đại diện hiện tại?")) return;
+    document.getElementById('edit-avatar').value = "";
+    document.getElementById('edit-file-input').value = "";
+    
+    const previewImg = document.getElementById('edit-preview-img');
+    const previewPlaceholder = document.getElementById('edit-preview-placeholder');
+    if (previewImg && previewPlaceholder) {
+        previewImg.style.display = 'none';
+        previewPlaceholder.innerText = currentEditingId;
+        previewPlaceholder.style.display = 'block';
+    }
+    
+    showToast("Đã gỡ ảnh. Hãy nhấn 'Lưu' để hoàn tất.");
 }
 
 async function uploadPhotoToTelegram(file) {
@@ -303,12 +293,12 @@ async function saveProfile() {
     };
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
-        showToast("Đã cập nhật hồ sơ! ✨", "success");
+        showToast("Đã cập nhật hồ sơ! ✨");
         saveBtn.innerText = "Lưu";
         saveBtn.disabled = false;
         cancelEditMode();
     }).catch(err => {
-        showToast("Lỗi kết nối Firebase!", "error");
+        showToast("Lỗi kết nối Firebase!");
         saveBtn.disabled = false;
     });
 }
@@ -362,28 +352,15 @@ function updateZoomStats(reacts, momentObj) {
     if (delBtn) delBtn.style.display = loggedInUserId ? 'inline-block' : 'none';
 }
 
-// Đã cập nhật SweetAlert2 cho phần Xóa ảnh kỷ niệm
 function deleteMoment() {
     const m = allMoments[currentMomentIdx];
     if (!m) return;
-    
-    Swal.fire({
-        title: 'Xóa ảnh kỷ niệm?',
-        text: "Bạn không thể hoàn tác hành động này. Xóa vĩnh viễn?",
-        icon: 'error',
-        showCancelButton: true,
-        confirmButtonColor: '#ff6b6b',
-        cancelButtonColor: '#8395a7',
-        confirmButtonText: 'Xóa ngay',
-        cancelButtonText: 'Hủy'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            database.ref('moments/' + m.id).remove().then(() => {
-                showToast("Đã xóa ảnh! 🗑️", "success");
-                document.getElementById('moment-modal').style.display = 'none';
-            });
-        }
-    });
+    if (confirm("Xóa vĩnh viễn ảnh kỷ niệm này?")) {
+        database.ref('moments/' + m.id).remove().then(() => {
+            showToast("Đã xóa ảnh! 🗑️");
+            document.getElementById('moment-modal').style.display = 'none';
+        });
+    }
 }
 
 async function uploadNewMoment() {
@@ -393,11 +370,11 @@ async function uploadNewMoment() {
     fileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            showToast("Đang tải lên... ⏳", "info");
+            showToast("Đang tải lên... ⏳");
             const fileId = await uploadPhotoToTelegram(file);
             if (fileId) {
                 database.ref('moments').push().set({ url: fileId, reactions: { love: 0 } })
-                .then(() => showToast("Đã thêm ảnh! 📸", "success"));
+                .then(() => showToast("Đã thêm ảnh! 📸"));
             }
         }
     };
@@ -417,8 +394,8 @@ function handleLogin() {
         document.getElementById('auth-btn').innerText = "Đăng xuất";
         updateUploadButton();
         const user = allMembers.find(m => m.id === loggedInUserId);
-        showToast(`Chào ${user.nickname || user.name}! ✨`, "success");
-    } else { showToast("Thông tin không đúng!", "error"); }
+        showToast(`Chào ${user.nickname || user.name}! ✨`);
+    } else { showToast("Thông tin không đúng!"); }
 }
 
 function toggleAuth() {
@@ -427,7 +404,7 @@ function toggleAuth() {
         localStorage.removeItem('myApp_userId');
         document.getElementById('auth-btn').innerText = "Đăng nhập";
         updateUploadButton();
-        showToast("Đã đăng xuất.", "info");
+        showToast("Đã đăng xuất.");
         document.getElementById('member-modal').style.display = 'none';
     } else { document.getElementById('login-mask').style.display = 'flex'; }
 }
@@ -466,24 +443,12 @@ function playSong(idx, autoPlay = true) {
     }
 }
 
-// 10. TIỆN ÍCH THÔNG BÁO LÀM ĐẸP ĐÃ ĐƯỢC NÂNG CẤP LÊN SWEETALERT2
-function showToast(msg, iconType = 'success') {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-        }
-    });
-
-    Toast.fire({
-        icon: iconType,
-        title: msg
-    });
+// 10. TIỆN ÍCH THÔNG BÁO LÀM ĐẸP
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.innerText = msg; 
+    t.className = "toast show";
+    setTimeout(() => t.className = "toast", 3000);
 }
 
 function closeModal(e, id) { 
