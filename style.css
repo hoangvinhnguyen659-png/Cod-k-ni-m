@@ -1,174 +1,162 @@
-/* Biến màu sắc */
+/* --- BIẾN MÀU SẮC & CẤU HÌNH CHUNG --- */
 :root {
     --primary: #1dd1a1;
+    --primary-dark: #10ac84;
     --accent: #ff7675;
     --bg-light: #f5f6fa;
+    --dark: #2d3436;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Quicksand', sans-serif; }
-body { background: var(--bg-light); scroll-behavior: smooth; }
+body { background: var(--bg-light); scroll-behavior: smooth; overflow-x: hidden; }
 
-.container { padding: 60px 5%; max-width: 1200px; margin: auto; }
-.section-title { font-family: 'Dancing Script', cursive; font-size: 2.5rem; text-align: center; margin-bottom: 40px; color: #2d3436; }
+.container { padding: 40px 15px; max-width: 1200px; margin: auto; }
+.section-title { font-family: 'Dancing Script', cursive; font-size: 2.2rem; text-align: center; margin-bottom: 30px; color: var(--dark); }
 
-/* Navigation & Hero */
-nav { background: white; padding: 15px 5%; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+/* --- THANH ĐIỀU HƯỚNG (NAV) --- */
+nav { background: white; padding: 10px 5%; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: auto; }
-.logo { font-family: 'Dancing Script', cursive; font-size: 1.8rem; font-weight: bold; color: var(--primary); text-decoration: none; }
-.nav-links { display: flex; list-style: none; gap: 20px; }
-.nav-links a { text-decoration: none; color: #2d3436; font-weight: 600; transition: 0.3s; }
+.logo { font-family: 'Dancing Script', cursive; font-size: 1.6rem; font-weight: bold; color: var(--primary); text-decoration: none; }
+.nav-links { display: flex; list-style: none; gap: 15px; }
+.nav-links a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 14px; transition: 0.3s; }
 .nav-links a:hover { color: var(--primary); }
-.nav-right { display: flex; gap: 10px; align-items: center; }
-button { font-family: 'Quicksand', sans-serif; outline: none; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-.btn-menu { background: transparent; color: #2d3436; border: 2px solid #ddd; display: flex; align-items: center; }
+.nav-right { display: flex; gap: 8px; align-items: center; }
+
+/* --- NÚT BẤM (BUTTONS) --- */
+button { font-family: 'Quicksand', sans-serif; outline: none; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 13px; }
+.btn-menu { background: #f1f2f6; color: var(--dark); border: 1px solid #ddd; display: flex; align-items: center; gap: 5px; }
 .btn-logout { background: var(--primary); color: white; }
-.btn-logout:hover { background: #10ac84; }
-
-.hero-content { background: linear-gradient(135deg, #1dd1a1, #54a0ff); color: white; text-align: center; padding: 100px 20px; border-radius: 0 0 30px 30px; margin-bottom: 40px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-.hero-content h1 { font-family: 'Dancing Script', cursive; font-size: 4rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-
-/* Grid Thành Viên & Ảnh */
-.grid-members, .grid-moments {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-}
-
-.member-card, .moment-card {
-    background: white; border-radius: 15px; overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s;
-}
-.member-card:hover { transform: translateY(-5px); }
-.member-card img, .moment-card img { width: 100%; height: 200px; object-fit: cover; }
-.member-name-plate { padding: 10px; text-align: center; font-weight: 600; }
-
-.add-btn { display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fff; border: 2px dashed #ccc; min-height: 200px; }
-.add-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-/* Grid Lưu Bút */
-.grid-notes {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-}
-.note-card {
-    padding: 20px; border-radius: 5px; box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
-    transform: rotate(-1deg); transition: 0.3s;
-}
-.note-card:nth-child(even) { transform: rotate(1.5deg); }
-.note-card p { font-size: 14px; margin-bottom: 10px; font-style: italic; }
-.note-card span { display: block; text-align: right; font-weight: bold; font-size: 12px; }
-
-/* Nút Xem Thêm */
-.btn-load-more {
-    display: block; margin: 30px auto; padding: 12px 30px;
-    background: white; color: var(--primary); border: 2px solid var(--primary);
-    border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.3s;
-}
+.btn-logout:hover { background: var(--primary-dark); }
+.btn-load-more { display: block; margin: 20px auto; background: white; color: var(--primary); border: 2px solid var(--primary); padding: 10px 30px; }
 .btn-load-more:hover { background: var(--primary); color: white; }
 
-/* Icon Custom */
-.custom-icon { width: 18px; height: 18px; vertical-align: middle; margin-right: 5px; }
-.custom-icon-large { width: 40px; height: 40px; color: #999; margin-bottom: 10px; }
+/* --- HERO SECTION --- */
+.hero-content { background: linear-gradient(135deg, #1dd1a1, #54a0ff); color: white; text-align: center; padding: 60px 20px; border-radius: 0 0 30px 30px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+.hero-content h1 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.hero-content p { font-style: italic; font-size: 14px; opacity: 0.9; }
 
-/* Spotify Player Fixed Bottom */
-.spotify-player {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
-    background: #191414; color: white; display: flex; align-items: center;
-    padding: 0 20px; z-index: 9999;
+/* --- LƯỚI THÀNH VIÊN (HIỂN THỊ 3 CỘT) --- */
+.grid-members {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
 }
-.sp-left { display: flex; align-items: center; width: 30%; }
-.sp-left img { width: 50px; height: 50px; border-radius: 5px; margin-right: 15px; }
-.sp-center { width: 40%; display: flex; flex-direction: column; align-items: center; }
-.sp-controls { display: flex; gap: 20px; align-items: center; margin-bottom: 5px; }
-.sp-controls svg { width: 24px; height: 24px; cursor: pointer; fill: white; }
-#sp-progress-bar { width: 100%; cursor: pointer; accent-color: #1db954; }
 
-/* Modal */
-.modal, .modal-login { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; }
-.modal-box, .login-box { background: white; padding: 30px; border-radius: 20px; position: relative; max-width: 400px; width: 90%; }
-.login-box { text-align: center; }
-.login-box h2 { margin-bottom: 20px; }
-.login-box input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
-.login-box button { width: 100%; background: var(--primary); color: white; padding: 10px; }
-.close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
-.member-detail-box img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 15px; }
-.member-detail-box h3 { text-align: center; margin-bottom: 15px; }
-.info-group { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-/* --- BỔ SUNG CHO CHỨC NĂNG 42 THÀNH VIÊN --- */
+.member-card {
+    background: white; 
+    border-radius: 12px; 
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06); 
+    cursor: pointer; 
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+.member-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+.member-card:active { transform: scale(0.95); }
 
-/* Avatar mặc định (Số thứ tự) cho Thẻ ngoài */
+.member-card img, .placeholder-avatar {
+    width: 100%;
+    aspect-ratio: 1/1; 
+    object-fit: cover;
+}
+
 .placeholder-avatar {
-    width: 100%;
-    height: 200px;
     background: linear-gradient(135deg, #74b9ff, #a29bfe);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4rem;
+    font-size: 2rem;
     color: white;
     font-weight: bold;
     font-family: 'Dancing Script', cursive;
 }
 
-/* Avatar mặc định cho trong Modal */
+.member-name-plate { 
+    padding: 8px 4px; 
+    text-align: center; 
+    font-weight: 600; 
+    font-size: 12px; 
+    color: var(--dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- MODAL HỆ THỐNG --- */
+.modal, .modal-login { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.75); display: flex; align-items: center; 
+    justify-content: center; z-index: 9999; padding: 20px;
+}
+.modal-box, .login-box { 
+    background: white; padding: 25px; border-radius: 20px; 
+    position: relative; width: 100%; max-width: 350px; 
+    animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #aaa; z-index: 10; }
+
+/* --- GIAO DIỆN NHẠC (PLAYLIST MODAL) --- */
+.playlist-box { background: #fff; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
+.now-playing { display: flex; align-items: center; gap: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; margin-bottom: 15px; }
+.now-playing img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); animation: rotate 10s linear infinite; animation-play-state: paused; }
+.now-playing.playing img { animation-play-state: running; }
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.np-info h4 { font-size: 15px; margin-bottom: 8px; color: var(--dark); }
+.np-controls { display: flex; gap: 15px; align-items: center; }
+.np-controls svg { width: 24px; height: 24px; fill: var(--dark); cursor: pointer; transition: 0.2s; }
+.np-controls svg:hover { fill: var(--primary); }
+
+.playlist-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+.playlist-item { display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8f9fa; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+.playlist-item:hover { background: #eef2f3; }
+.playlist-item img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+.playlist-item p { font-size: 13px; font-weight: 600; color: #444; }
+
+/* --- FORM ĐĂNG NHẬP & CHỈNH SỬA --- */
+.login-box h2, #edit-mode h3 { margin-bottom: 15px; text-align: center; color: var(--dark); }
+.login-box input, .edit-input { 
+    width: 100%; padding: 12px; margin-bottom: 12px; 
+    border: 1px solid #ddd; border-radius: 10px; font-size: 14px; outline: none;
+}
+.login-box input:focus, .edit-input:focus { border-color: var(--primary); }
+
+.btn-action { width: 100%; background: var(--primary); color: white; padding: 12px; border-radius: 10px; margin-top: 5px; font-size: 14px; }
+.btn-action:hover { background: var(--primary-dark); }
+.btn-cancel { background: #eee; color: #666; margin-top: 8px; }
+.btn-cancel:hover { background: #e0e0e0; }
+
+/* --- CHI TIẾT THÀNH VIÊN (MODAL) --- */
 .placeholder-avatar-round {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
+    width: 90px; height: 90px; border-radius: 50%; 
     background: linear-gradient(135deg, #74b9ff, #a29bfe);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    color: white;
-    font-weight: bold;
-    margin: 0 auto 15px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; color: white; margin: 0 auto 15px;
     font-family: 'Dancing Script', cursive;
 }
+.member-detail-box img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 15px; border: 2px solid var(--primary); }
+.member-detail-box h3 { text-align: center; margin-bottom: 15px; color: var(--dark); }
+.info-group { display: flex; align-items: flex-start; gap: 10px; background: #fff5f5; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+.info-group p { font-size: 14px; color: #555; line-height: 1.5; }
+.custom-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
 
-#modal-avatar-container {
-    text-align: center;
+/* --- TOAST THÔNG BÁO --- */
+.toast {
+    visibility: hidden; min-width: 220px; background-color: rgba(45, 52, 54, 0.95);
+    color: #fff; text-align: center; border-radius: 50px;
+    padding: 12px 24px; position: fixed; z-index: 10000;
+    left: 50%; bottom: 30px; transform: translateX(-50%);
+    font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s, bottom 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
+.toast.show { visibility: visible; opacity: 1; bottom: 50px; }
 
-/* Các trường nhập liệu trong chế độ sửa */
-.edit-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-family: 'Quicksand', sans-serif;
-    font-size: 14px;
-}
+/* --- ĐIỀU CHỈNH CUỘN (SCROLLBAR) --- */
+.playlist-items::-webkit-scrollbar { width: 4px; }
+.playlist-items::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
 
-.edit-input:focus {
-    outline: none;
-    border-color: var(--primary);
-}
-
-.btn-action {
-    width: 100%;
-    background: var(--primary);
-    color: white;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-.btn-action:hover {
-    background: #10ac84;
-}
-
-.btn-cancel {
-    background: #ff7675;
-}
-
-.btn-cancel:hover {
-    background: #d63031;
-}
-
-#edit-mode h3 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #2d3436;
-}
+/* --- ICON TÙY CHỈNH --- */
+.custom-icon-large { width: 40px; height: 40px; color: #999; margin-bottom: 10px; }
