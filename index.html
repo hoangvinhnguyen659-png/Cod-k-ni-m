@@ -17,7 +17,7 @@
         <div class="login-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
             <h2>Đăng nhập</h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Tài khoản định dạng: ban[số_thứ_tự]@lop.com</p>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Tài khoản: ban[số_thứ_tự]@lop.com</p>
             <input type="email" id="login-email" placeholder="Ví dụ: ban23@lop.com">
             <input type="password" id="login-pass" placeholder="Mật khẩu">
             <button onclick="handleLogin()">Đăng nhập</button>
@@ -38,24 +38,21 @@
                     </div>
                 </div>
             </div>
-            <div class="playlist-items" id="playlist-container">
-                </div>
+            <div class="playlist-items" id="playlist-container"></div>
         </div>
     </div>
     <audio id="main-audio" src=""></audio>
 
     <nav>
         <div class="nav-container">
-            <a href="#trang-chu" class="logo">Thanh Xuân</a>
+            <a href="#" class="logo">Thanh Xuân</a>
             <ul class="nav-links">
                 <li><a href="#trang-chu">Trang chủ</a></li>
                 <li><a href="#thanh-vien">Thành viên</a></li>
+                <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
             </ul>
             <div class="nav-right">
-                <button class="btn-menu" onclick="document.getElementById('music-modal').style.display='flex'">
-                    <svg class="custom-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-                    Playlist
-                </button>
+                <button class="btn-menu" onclick="document.getElementById('music-modal').style.display='flex'">Nhạc</button>
                 <button class="btn-logout" id="auth-btn" onclick="toggleAuth()">Đăng nhập</button>
             </div>
         </div>
@@ -69,15 +66,20 @@
     </section>
 
     <section id="thanh-vien" class="container">
-        <h2 class="section-title">Thành Viên (Sĩ Số: 42)</h2>
+        <h2 class="section-title">Thành Viên</h2>
         <div class="grid-members" id="member-container"></div>
-        <button id="btn-load-more" class="btn-load-more" onclick="loadMoreMembers()">Xem thêm</button>
+        <button id="btn-load-more-members" class="btn-load-more" onclick="loadAllMembers()">Xem thêm thành viên</button>
     </section>
 
-    <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
+    <section id="khoanh-khac" class="container">
+        <h2 class="section-title">Khoảnh Khắc</h2>
+        <div class="grid-moments" id="moment-container"></div>
+        <button id="btn-load-more-moments" class="btn-load-more" onclick="loadAllMoments()">Xem thêm ảnh</button>
+    </section>
+
+    <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')" style="display: none;">
         <div class="modal-box member-detail-box">
             <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
-            
             <div id="view-mode">
                 <div id="modal-avatar-container">
                     <img id="modal-member-img" src="" alt="Avatar" style="display: none;">
@@ -85,22 +87,34 @@
                 </div>
                 <h3 id="modal-member-name">Tên Thành Viên</h3>
                 <div class="info-group">
-                    <svg class="custom-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #ff7675;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     <p id="modal-member-hobbies"></p>
                 </div>
                 <button id="btn-edit-profile" class="btn-action" style="display: none; margin-top: 15px;" onclick="enableEditMode()">Sửa thông tin của tôi</button>
             </div>
-
             <div id="edit-mode" style="display: none;">
                 <h3>Cập Nhật Hồ Sơ</h3>
-                <input type="text" id="edit-name" placeholder="Họ và Tên của bạn" class="edit-input">
-                <input type="text" id="edit-avatar" placeholder="Link ảnh đại diện (URL)" class="edit-input">
-                <textarea id="edit-hobbies" placeholder="Sở thích, lời nhắn..." class="edit-input" rows="3"></textarea>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="btn-action" onclick="saveProfile()">Lưu lại</button>
+                <input type="text" id="edit-name" placeholder="Họ và Tên" class="edit-input">
+                <input type="text" id="edit-avatar" placeholder="Link ảnh (URL)" class="edit-input">
+                <textarea id="edit-hobbies" placeholder="Sở thích..." class="edit-input" rows="3"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-action" onclick="saveProfile()">Lưu</button>
                     <button class="btn-action btn-cancel" onclick="cancelEditMode()">Hủy</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="moment-modal" class="modal" onclick="closeModal(event, 'moment-modal')" style="display: none;">
+        <div class="modal-box zoom-box">
+            <span class="close-btn" onclick="document.getElementById('moment-modal').style.display='none'">&times;</span>
+            <img id="zoom-img" src="" alt="Zoom">
+            <div class="reaction-bar">
+                <span onclick="addReaction('❤️')">❤️</span>
+                <span onclick="addReaction('😂')">😂</span>
+                <span onclick="addReaction('😮')">😮</span>
+                <span onclick="addReaction('👍')">👍</span>
+            </div>
+            <div id="zoom-reaction-stats" class="zoom-stats"></div>
         </div>
     </div>
 
