@@ -12,7 +12,7 @@ const database = firebase.database();
 // --- CẤU HÌNH BỔ SUNG TELEGRAM & WORKER ---
 const TELEGRAM_BOT_TOKEN = "8727433515:AAGcXg95sgxRghZcQXCzDO0bParEmjdq-uQ"; // Dán Token của bạn vào đây
 const TELEGRAM_CHAT_ID = "-1003326339658"; // Dán Chat ID Kênh (có dấu -100)
-const WORKER_URL = "https://photo.hoangvinhnguyen659.workers.dev/"; // Link Worker của bạn
+const WORKER_URL = "https://photo.hoangvinhnguyen659.workers.dev"; // Link Worker của bạn
 
 // 2. BIẾN TOÀN CỤC
 let allMembers = [];
