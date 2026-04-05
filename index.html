@@ -122,8 +122,14 @@
             </div>
 
             <div id="edit-mode" style="display: none;">
-                <h3 style="text-align: center; margin-bottom: 20px;">Cập Nhật Hồ Sơ</h3>
+                <h3 style="text-align: center; margin-bottom: 10px;">Cập Nhật Hồ Sơ</h3>
                 
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <button type="button" class="btn-action" style="background: #fff0f0; color: #d63031; border: 1px solid #fab1a0; width: auto; padding: 5px 15px; font-size: 0.8rem;" onclick="removeCurrentAvatar()">
+                        <i class="fas fa-trash-can"></i> Gỡ ảnh hiện tại
+                    </button>
+                </div>
+
                 <label style="font-size: 0.8rem; font-weight: bold; color: #666;">Tên hiển thị:</label>
                 <input type="text" id="edit-name" placeholder="Họ và Tên thật" class="edit-input">
                 
@@ -163,7 +169,14 @@
                 <span style="cursor: pointer;" onclick="addReaction('sad')">😢</span>
                 <span style="cursor: pointer;" onclick="addReaction('angry')">😡</span>
             </div>
-            <div id="zoom-reaction-stats" style="text-align: center; font-weight: bold; background: #f8f9fa; padding: 10px; border-radius: 10px;"></div>
+            
+            <div id="zoom-reaction-stats" style="text-align: center; font-weight: bold; background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 15px;"></div>
+
+            <div style="text-align: center;">
+                <button id="btn-delete-moment" class="btn-action" style="display: none; background: #ff7675; width: auto; padding: 8px 20px; font-size: 0.9rem;" onclick="deleteMoment()">
+                    <i class="fas fa-trash-alt"></i> Xóa ảnh kỷ niệm này
+                </button>
+            </div>
         </div>
     </div>
 
