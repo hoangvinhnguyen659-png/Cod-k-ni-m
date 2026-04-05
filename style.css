@@ -67,7 +67,16 @@ button:active { transform: scale(0.95); }
 .hero-content p { font-style: italic; opacity: 0.9; font-size: 1.1rem; }
 
 /* --- 5. GRID HỆ THỐNG --- */
-.grid-members, .grid-moments { 
+/* Cập nhật: Ép buộc 1 hàng 3 thẻ cho danh sách thành viên */
+#member-container, .grid-members { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; 
+    padding: 10px;
+}
+
+/* Giữ nguyên khoảnh khắc hiển thị linh hoạt */
+.grid-moments { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
     gap: 20px; 
@@ -177,14 +186,32 @@ button:active { transform: scale(0.95); }
 .stats-bar { text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-top: 10px; }
 
 /* --- 11. TOAST NOTIFICATION --- */
-.toast { 
-    visibility: hidden; min-width: 250px; background: rgba(45, 52, 54, 0.95); 
-    color: #fff; text-align: center; border-radius: 50px; padding: 16px 25px; 
-    position: fixed; z-index: 3000; left: 50%; bottom: -100px; 
-    transform: translateX(-50%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+/* Cập nhật: Màu nền trắng, chữ tối, bo góc và đổ bóng sang trọng */
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #ffffff; 
+    color: #333; 
+    text-align: center;
+    border-radius: 12px; 
+    padding: 16px;
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 15px;
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15); 
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.4s, bottom 0.4s;
 }
-.toast.show { visibility: visible; bottom: 40px; }
+
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+}
 
 /* --- 12. THANH CUỘN (SCROLLBAR) --- */
 ::-webkit-scrollbar { width: 6px; }
