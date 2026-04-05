@@ -5,186 +5,225 @@
     --accent: #ff7675;
     --bg-light: #f5f6fa;
     --dark: #2d3436;
-    --gray: #8395a7;
+    --gray: #888;
+    /* Màu sắc theo ảnh mẫu */
     --cyan: #48dbfb;
+    --cyan-dark: #0abde3;
     --coral: #ff7675;
-    --blue: #54a0ff;
+    --blue: #74b9ff;
     --pink-bg: #fff5f5;
     --blue-bg: #eaf6ff;
-    --shadow: 0 10px 20px rgba(0,0,0,0.05);
+    --shadow: 0 4px 15px rgba(0,0,0,0.1);
     --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Quicksand', sans-serif; }
 
-html { font-size: 16px; scroll-behavior: smooth; }
-body { background: var(--bg-light); color: var(--dark); line-height: 1.6; overflow-x: hidden; }
+html { font-size: clamp(14px, 1.5vw, 16px); scroll-behavior: smooth; }
+body { background: var(--bg-light); overflow-x: hidden; color: var(--dark); line-height: 1.6; }
 
-.container { padding: 60px 15px; max-width: 1200px; margin: auto; }
-.section-title { font-family: 'Dancing Script', cursive; font-size: clamp(2.5rem, 5vw, 3.5rem); text-align: center; margin-bottom: 40px; color: var(--dark); position: relative; }
-.section-title::after { content: ''; display: block; width: 60px; height: 3px; background: var(--primary); margin: 10px auto; border-radius: 2px; }
+.container { padding: 40px 15px; max-width: 1200px; margin: auto; }
+.section-title { font-family: 'Dancing Script', cursive; font-size: clamp(2.2rem, 5vw, 3rem); text-align: center; margin-bottom: 30px; color: var(--dark); }
 
 /* --- 2. THANH ĐIỀU HƯỚNG (NAV) --- */
-nav { 
-    background: rgba(255, 255, 255, 0.95); 
-    backdrop-filter: blur(10px);
-    padding: 15px 5%; 
-    position: sticky; 
-    top: 0; 
-    z-index: 1000; 
-    box-shadow: 0 2px 20px rgba(0,0,0,0.04); 
-}
+nav { background: white; padding: 12px 5%; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
 .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: auto; }
-.logo { font-family: 'Dancing Script', cursive; font-size: 2rem; font-weight: bold; color: var(--primary-dark) !important; text-decoration: none; }
+.logo { font-family: 'Dancing Script', cursive; font-size: clamp(1.8rem, 4vw, 2.2rem); font-weight: bold; color: var(--primary-dark); text-decoration: none; }
 
-.nav-links { display: flex; gap: 25px; list-style: none; align-items: center; }
+.nav-links { display: flex; gap: clamp(15px, 3vw, 30px); list-style: none; align-items: center; }
 .nav-links a { text-decoration: none; color: var(--dark); font-size: 0.95rem; font-weight: 700; transition: var(--transition); }
 .nav-links a:hover { color: var(--primary); }
 
 @media (max-width: 768px) {
-    .nav-links { display: none; } /* Ẩn menu chữ trên mobile để gọn hơn */
-    .nav-container { padding: 0 10px; }
+    .nav-container { flex-direction: column; gap: 10px; }
+    .nav-links { gap: 15px; }
 }
 
-/* --- 3. NÚT BẤM (BUTTONS) --- */
-button { border: none; border-radius: 50px; font-weight: 700; cursor: pointer; transition: var(--transition); outline: none; }
+/* --- 3. NÚT BẤM (BUTTONS) & HIỆU ỨNG --- */
+button { border: none; padding: 10px 22px; border-radius: 25px; font-weight: 700; cursor: pointer; transition: var(--transition); outline: none; }
 button:active { transform: scale(0.95); }
 
-.btn-auth { background: var(--primary); color: white; padding: 10px 25px; box-shadow: 0 4px 12px rgba(29, 209, 161, 0.3); }
-.btn-auth:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(29, 209, 161, 0.4); }
+.btn-auth { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(29, 209, 161, 0.3); }
+.btn-auth:hover { background: var(--primary-dark); transform: translateY(-2px); }
 
 .btn-action { 
+    display: block; width: 100%; padding: 14px; 
     background: var(--primary); color: white; 
-    font-size: 1rem; border-radius: 12px;
+    border-radius: 15px; font-size: 1rem; margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(29, 209, 161, 0.2);
 }
 .btn-action:hover { background: var(--primary-dark); }
 
-.btn-secondary { background: #f1f2f6; color: var(--dark); }
-.btn-secondary:hover { background: #dfe4ea; }
+.btn-secondary { background: #eee; color: var(--dark); margin-top: 8px; }
+.btn-secondary:hover { background: #ddd; }
 
 /* --- 4. HERO SECTION --- */
 .hero-content { 
     background: linear-gradient(135deg, #1dd1a1, #54a0ff); color: white; 
-    text-align: center; padding: 100px 20px; border-radius: 0 0 80px 80px; 
-    margin-bottom: 40px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
+    text-align: center; padding: 80px 20px; border-radius: 0 0 50px 50px; 
+    margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
 }
-.hero-content h1 { font-family: 'Dancing Script', cursive; font-size: clamp(3rem, 8vw, 4.5rem); margin-bottom: 15px; text-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
-.hero-content p { font-style: italic; opacity: 0.9; font-size: 1.2rem; font-weight: 500; }
+.hero-content h1 { font-family: 'Dancing Script', cursive; font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 10px; }
+.hero-content p { font-style: italic; opacity: 0.9; font-size: 1.1rem; }
 
 /* --- 5. GRID HỆ THỐNG --- */
-#member-container { 
+/* Cập nhật: Ép buộc 1 hàng 3 thẻ cho danh sách thành viên */
+#member-container, .grid-members { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
-    gap: 15px; 
+    gap: 12px; 
+    padding: 10px;
 }
 
+/* Giữ nguyên khoảnh khắc hiển thị linh hoạt */
 .grid-moments { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
-    gap: 15px; 
+    gap: 20px; 
 }
 
-.member-card { 
+.member-card, .moment-card { 
     background: white; border-radius: 20px; overflow: hidden; 
-    box-shadow: var(--shadow); transition: var(--transition); cursor: pointer; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: var(--transition); cursor: pointer; 
+    position: relative;
 }
-.member-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-.member-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+.member-card:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.12); }
+
+.member-card img, .moment-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+.member-name-plate { padding: 12px 5px; text-align: center; font-weight: 700; font-size: 0.85rem; background: #fff; }
 
 .placeholder-avatar { 
-    width: 100%; aspect-ratio: 1/1; background: linear-gradient(135deg, #a29bfe, #74b9ff); 
+    width: 100%; aspect-ratio: 1/1; background: linear-gradient(135deg, #74b9ff, #a29bfe); 
     display: flex; align-items: center; justify-content: center; 
-    color: white; font-size: 2.5rem; font-family: 'Dancing Script', cursive; 
+    color: white; font-size: 2.2rem; font-family: 'Dancing Script', cursive; 
 }
 
-/* --- 6. MODAL --- */
+/* --- 6. MODAL & CHỈNH SỬA --- */
 .modal { 
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5); 
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
     display: none; align-items: center; justify-content: center; 
-    z-index: 2000; padding: 15px; backdrop-filter: blur(8px); 
+    z-index: 2000; padding: 20px; backdrop-filter: blur(6px); 
 }
 .modal-box { 
     background: white; padding: 30px; border-radius: 30px; 
-    width: 100%; max-width: 400px; position: relative; 
-    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    width: 100%; max-width: 420px; position: relative; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
 }
 
 @keyframes modalPop { 
-    from { transform: scale(0.9); opacity: 0; } 
+    from { transform: scale(0.8); opacity: 0; } 
     to { transform: scale(1); opacity: 1; } 
 }
 
-.close-btn { position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer; color: #ccc; }
+.close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #bbb; transition: 0.2s; }
 .close-btn:hover { color: var(--accent); }
 
 /* --- 7. CHI TIẾT THÀNH VIÊN --- */
-.modal-avatar-wrapper { text-align: center; margin-bottom: 20px; position: relative; }
+.modal-avatar-wrapper { text-align: center; margin-bottom: 20px; }
 .modal-avatar-wrapper img, .modal-avatar-wrapper .placeholder-avatar {
-    width: 130px; height: 130px; border-radius: 35px; margin: auto;
-    object-fit: cover; border: 5px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    width: 120px; height: 120px; border-radius: 25px; margin: auto;
+    object-fit: cover; border: 4px solid #fff; box-shadow: var(--shadow);
 }
 
-.member-title-info h2 { font-size: 1.6rem; margin-bottom: 5px; }
-.member-title-info span { color: var(--primary-dark); font-weight: 700; font-size: 0.9rem; }
+.member-title-info { text-align: center; margin-bottom: 20px; }
+.member-title-info h2 { font-size: 1.5rem; color: var(--dark); }
+.member-title-info span { color: var(--primary-dark); font-weight: 600; font-size: 0.9rem; }
 
-.info-group { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 20px; margin-bottom: 15px; text-align: left; }
-.hobbies-group { background: var(--pink-bg); border-left: 5px solid var(--coral); }
+.info-group { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 18px; margin-bottom: 12px; }
+.hobbies-group { background: var(--pink-bg); }
 .message-group { background: var(--blue-bg); border-left: 5px solid var(--blue); }
 
-.info-text strong { font-size: 0.75rem; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px; }
-.info-text p { font-size: 1rem; color: var(--dark); font-weight: 600; }
+.info-text strong { font-size: 0.7rem; color: var(--gray); text-transform: uppercase; display: block; letter-spacing: 1px; }
+.info-text p { font-size: 0.95rem; color: var(--dark); font-weight: 600; }
 
-/* --- 8. EDIT MODE --- */
-.edit-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); display: block; margin: 0 0 5px 5px; text-align: left; }
+/* --- 8. NHẠC & PLAYLIST --- */
+.music-player-box { background: #fff; padding: 20px; border-radius: 25px; }
+.now-playing-info { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+
+.track-circle { 
+    width: 60px; height: 60px; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; 
+    color: white; font-weight: 800; font-size: 1.5rem;
+}
+.circle-cyan { background: var(--cyan); border: 4px solid #fff; box-shadow: 0 0 0 3px var(--cyan); }
+.circle-coral { background: var(--coral); border: 4px solid #fff; box-shadow: 0 0 0 3px var(--coral); }
+.circle-blue { background: var(--blue); border: 4px solid #fff; box-shadow: 0 0 0 3px var(--blue); }
+
+.music-controls { display: flex; justify-content: center; gap: 25px; font-size: 1.2rem; margin: 15px 0; color: var(--dark); }
+.music-controls i { cursor: pointer; transition: 0.2s; }
+.music-controls i:hover { color: var(--primary); transform: scale(1.2); }
+
+.playlist-scroll { max-height: 200px; overflow-y: auto; margin-top: 15px; padding-right: 5px; }
+.music-item { 
+    display: flex; align-items: center; gap: 15px; padding: 10px; 
+    border-radius: 15px; cursor: pointer; transition: 0.2s; margin-bottom: 8px;
+    background: #f9f9f9;
+}
+.music-item:hover { background: #f0f0f0; transform: translateX(5px); }
+
+/* --- 9. EDIT MODE INPUTS --- */
+.edit-label { font-size: 0.8rem; font-weight: 700; color: var(--gray); margin-left: 5px; }
 .edit-input { 
-    width: 100%; padding: 12px 18px; margin-bottom: 18px; 
-    border: 2px solid #f1f2f6; border-radius: 15px; 
+    width: 100%; padding: 12px 15px; margin-bottom: 15px; 
+    border: 2px solid #f0f0f0; border-radius: 12px; 
     background: #fdfdfd; outline: none; font-size: 0.95rem; transition: 0.3s;
 }
-.edit-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 15px rgba(29, 209, 161, 0.1); }
+.edit-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 10px rgba(29, 209, 161, 0.1); }
 
-/* --- 9. MUSIC MODAL --- */
-.now-playing-container { background: #f8f9fa; padding: 25px; border-radius: 25px; margin-bottom: 20px; }
-.track-circle { 
-    width: 75px; height: 75px; border-radius: 50%; 
-    display: flex; align-items: center; justify-content: center; 
-    color: white; font-weight: 800; font-size: 1.8rem; margin: auto;
-}
-.circle-cyan { background: var(--cyan); box-shadow: 0 10px 20px rgba(72, 219, 251, 0.3); }
+/* --- 10. KHOẢNH KHẮC & ZOOM --- */
+.zoom-img-container { width: 100%; border-radius: 20px; overflow: hidden; margin-bottom: 15px; }
+.zoom-img-container img { width: 100%; display: block; }
 
-.music-controls { display: flex; justify-content: center; gap: 30px; font-size: 1.5rem; margin-top: 20px; }
-.music-controls i { cursor: pointer; transition: 0.2s; color: var(--dark); }
-.music-controls i:hover { color: var(--primary); transform: scale(1.1); }
-
-.playlist-scroll { max-height: 250px; overflow-y: auto; padding-right: 5px; }
-.music-item { 
-    display: flex; align-items: center; gap: 15px; padding: 12px; 
-    border-radius: 15px; cursor: pointer; transition: 0.2s; background: #fff; margin-bottom: 10px; border: 1px solid #f1f2f6;
-}
-.music-item:hover { background: #f1f2f6; transform: translateX(5px); }
-
-/* --- 10. MOMENT ZOOM --- */
-#zoom-img { width: 100%; border-radius: 20px; transition: 0.3s; }
 .reaction-bar { 
     display: flex; justify-content: space-around; 
-    padding: 15px; background: #f8f9fa; border-radius: 50px; 
-    margin-top: 20px; font-size: 1.8rem;
+    padding: 12px; background: #f8f9fa; border-radius: 30px; 
+    margin-top: 15px;
 }
-.react-item { cursor: pointer; transition: 0.3s; }
-.react-item:hover { transform: scale(1.5) translateY(-5px); }
+.react-item { font-size: 1.8rem; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.react-item:hover { transform: scale(1.4) translateY(-8px); }
 
-/* --- 11. SWEETALERT CUSTOM (Tùy chỉnh thông báo) --- */
-.swal2-popup { border-radius: 25px !important; font-family: 'Quicksand', sans-serif !important; }
-.swal2-styled.swal2-confirm { border-radius: 12px !important; padding: 10px 30px !important; }
+.stats-bar { text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-top: 10px; }
 
-/* --- 12. SCROLLBAR --- */
-::-webkit-scrollbar { width: 8px; }
+/* --- 11. TOAST NOTIFICATION --- */
+/* Cập nhật: Màu nền trắng, chữ tối, bo góc và đổ bóng sang trọng */
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #ffffff; 
+    color: #333; 
+    text-align: center;
+    border-radius: 12px; 
+    padding: 16px;
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 15px;
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15); 
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.4s, bottom 0.4s;
+}
+
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+}
+
+/* --- 12. THANH CUỘN (SCROLLBAR) --- */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #dfe4ea; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #ced6e0; }
+::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #ccc; }
 
-@media (max-width: 480px) {
-    #member-container { grid-template-columns: repeat(2, 1fr); } /* Trên màn hình quá nhỏ thì để 2 cột cho dễ nhìn */
-    .hero-content { padding: 60px 15px; border-radius: 0 0 50px 50px; }
+/* --- 13. LOGIN MASK --- */
+.login-mask {
+    position: fixed; inset: 0; background: white; z-index: 5000;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px;
 }
+.login-box { width: 100%; max-width: 350px; text-align: center; }
+.login-box h2 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; margin-bottom: 30px; color: var(--primary-dark); }
