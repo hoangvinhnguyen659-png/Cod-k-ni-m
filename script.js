@@ -12,7 +12,6 @@ const database = firebase.database();
 // 2. BIẾN TOÀN CỤC
 let allMembers = [];
 let allMoments = [];
-// Khôi phục trạng thái đăng nhập từ bộ nhớ trình duyệt
 let loggedInUserId = localStorage.getItem('myApp_userId') ? parseInt(localStorage.getItem('myApp_userId')) : null;
 let currentEditingId = null;
 let currentMomentIdx = 0; 
@@ -30,7 +29,6 @@ const audio = document.getElementById('main-audio');
 function init() {
     // A. Lấy dữ liệu thành viên Realtime
     database.ref('users').on('value', snap => {
-        // Tạo danh sách 42 người mặc định
         let tempMembers = [];
         for (let i = 1; i <= 42; i++) {
             tempMembers.push({ 
@@ -39,7 +37,6 @@ function init() {
             });
         }
 
-        // Nếu Firebase có dữ liệu, đè dữ liệu đó lên danh sách mặc định
         if (snap.exists()) {
             const data = snap.val();
             for (const key in data) {
@@ -51,7 +48,6 @@ function init() {
         allMembers = tempMembers;
         renderMembers();
 
-        // Cập nhật Modal nếu đang mở để thấy dữ liệu mới nhất ngay lập tức
         if (currentEditingId) updateModalUI(currentEditingId);
     });
 
@@ -65,9 +61,13 @@ function init() {
             }
         }
         renderMoments();
+        // Cập nhật thống tại chỗ nếu đang mở ảnh
+        if (document.getElementById('moment-modal').style.display === 'flex') {
+            const m = allMoments[currentMomentIdx];
+            if(m) updateZoomStats(m.reactions || {});
+        }
     });
 
-    // C. Kiểm tra trạng thái đăng nhập để hiển thị giao diện
     if (loggedInUserId) {
         document.getElementById('auth-btn').innerText = "Đăng xuất";
     }
@@ -97,7 +97,7 @@ function loadAllMembers() {
     document.getElementById('btn-load-more-members').style.display = 'none';
 }
 
-// 5. CHI TIẾT THÀNH VIÊN
+// 5. CHI TIẾT THÀNH VIÊN & LƯU DỮ LIỆU
 function openMemberModal(id) {
     currentEditingId = id;
     updateModalUI(id);
@@ -123,7 +123,6 @@ function updateModalUI(id) {
         img.style.display = 'none'; placeholder.innerText = m.id; placeholder.style.display = 'flex';
     }
 
-    // Nút sửa chỉ hiện khi ID đang xem trùng với ID đã đăng nhập
     document.getElementById('btn-edit-profile').style.display = (loggedInUserId === id) ? 'block' : 'none';
 }
 
@@ -140,6 +139,14 @@ function enableEditMode() {
 }
 
 function saveProfile() {
+    const saveBtn = document.querySelector('.btn-action');
+    const originalText = saveBtn.innerText;
+
+    // Hiệu ứng chờ cho người dùng
+    saveBtn.innerText = "Đang lưu vĩnh viễn...";
+    saveBtn.style.opacity = "0.6";
+    saveBtn.disabled = true;
+
     const data = {
         name: document.getElementById('edit-name').value.trim() || `Thành viên ${currentEditingId}`,
         nickname: document.getElementById('edit-nickname').value.trim(),
@@ -149,8 +156,14 @@ function saveProfile() {
     };
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
-        showToast("Đã lưu vĩnh viễn lên mây! ✨");
+        showToast("Lưu thành công lên mây! ✨");
+        saveBtn.innerText = originalText;
+        saveBtn.style.opacity = "1";
+        saveBtn.disabled = false;
         cancelEditMode();
+    }).catch(err => {
+        showToast("Lỗi kết nối Firebase!");
+        saveBtn.disabled = false;
     });
 }
 
@@ -178,10 +191,18 @@ function openMoment(idx) {
     document.getElementById('moment-modal').style.display = 'flex';
 }
 
+function changeMoment(step) {
+    currentMomentIdx += step;
+    if (currentMomentIdx < 0) currentMomentIdx = allMoments.length - 1;
+    if (currentMomentIdx >= allMoments.length) currentMomentIdx = 0;
+    openMoment(currentMomentIdx);
+}
+
 function addReaction(type) {
     const m = allMoments[currentMomentIdx];
     if(!m) return;
     database.ref(`moments/${m.id}/reactions/${type}`).transaction(count => (count || 0) + 1);
+    showToast("Đã thả tim! ❤️");
 }
 
 function updateZoomStats(reacts) {
@@ -208,13 +229,10 @@ function handleLogin() {
     
     if (match && pass !== "") {
         loggedInUserId = parseInt(match[1]);
-        // Lưu trạng thái đăng nhập vào trình duyệt
         localStorage.setItem('myApp_userId', loggedInUserId);
-
         document.getElementById('login-mask').style.display = 'none';
         document.getElementById('auth-btn').innerText = "Đăng xuất";
         updateUploadButton();
-        
         const user = allMembers.find(m => m.id === loggedInUserId);
         showToast(`Chào ${user.nickname || user.name}! ✨`);
     } else { 
@@ -225,7 +243,7 @@ function handleLogin() {
 function toggleAuth() {
     if (loggedInUserId) {
         loggedInUserId = null;
-        localStorage.removeItem('myApp_userId'); // Xóa phiên đăng nhập
+        localStorage.removeItem('myApp_userId');
         document.getElementById('auth-btn').innerText = "Đăng nhập";
         updateUploadButton();
         showToast("Đã đăng xuất.");
@@ -240,7 +258,7 @@ function updateUploadButton() {
     if (btn) btn.style.display = loggedInUserId ? 'block' : 'none';
 }
 
-// 8. LOGIC NHẠC (Giữ nguyên)
+// 8. LOGIC NHẠC
 function loadPlaylist() {
     const container = document.getElementById('playlist-container');
     if(!container) return;
@@ -252,15 +270,21 @@ function loadPlaylist() {
             <div class="track-info"><span>${s.title}</span></div>
         </div>`;
     });
-    playSong(1, false); 
 }
 
 function playSong(idx, autoPlay = true) {
     currentSongIdx = idx;
     const s = songs[idx];
     const npIcon = document.getElementById('np-icon');
-    if (npIcon) { npIcon.className = `track-circle ${s.class}`; npIcon.innerText = s.id; }
+    if (npIcon) { 
+        npIcon.className = `track-circle ${s.class}`; 
+        npIcon.innerText = s.id; 
+    }
     document.getElementById('np-title').innerText = "Đang phát: " + s.title;
+    if(autoPlay && s.src) {
+        audio.src = s.src;
+        audio.play();
+    }
 }
 
 // 9. TIỆN ÍCH
