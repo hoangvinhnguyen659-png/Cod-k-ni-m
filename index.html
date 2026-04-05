@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh Xuân Của Chúng Ta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -28,7 +28,7 @@
         <div class="modal-box playlist-box">
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
             <div class="now-playing" id="np-container">
-                <img id="np-img" src="https://placehold.co/100x100/1dd1a1/white?text=Music" alt="Playing">
+                <div id="np-icon" class="song-icon-large" style="background-color: #1dd1a1;">?</div>
                 <div class="np-info">
                     <h4 id="np-title">Chưa phát nhạc</h4>
                     <div class="np-controls">
@@ -58,7 +58,7 @@
         </div>
     </nav>
 
-    <div class="hero-content">
+    <div class="hero-content" id="trang-chu">
         <h1>Thanh Xuân Của Chúng Ta</h1>
         <p>"Những năm tháng rực rỡ dưới mái trường thân yêu"</p>
     </div>
@@ -70,7 +70,7 @@
     </section>
 
     <section id="khoanh-khac" class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="moment-header">
             <h2 class="section-title" style="margin: 0;">Khoảnh Khắc</h2>
             <button class="btn-menu" onclick="uploadNewMoment()">+ Thêm ảnh</button>
         </div>
@@ -82,10 +82,10 @@
             <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
             <div id="view-mode">
                 <img id="modal-member-img" src="" style="width:100px; height:100px; border-radius:50%; margin: 0 auto 15px; display:block; object-fit:cover;">
-                <div id="modal-placeholder-avatar" class="placeholder-avatar-round"></div>
-                <h3 id="modal-member-name" style="text-align:center;"></h3>
+                <div id="modal-placeholder-avatar" class="placeholder-avatar-round" style="width:100px; height:100px; border-radius:50%; margin: 0 auto 15px; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, #74b9ff, #a29bfe); color:white; font-size:2rem; font-family:'Dancing Script', cursive;"></div>
+                <h3 id="modal-member-name" style="text-align:center; margin-bottom: 20px;"></h3>
                 
-                <div class="info-group">
+                <div class="info-group hobbies-group">
                     <strong>💎 Sở thích:</strong>
                     <p id="modal-member-hobbies"></p>
                 </div>
@@ -94,7 +94,7 @@
                     <p id="modal-member-message"></p>
                 </div>
                 
-                <button id="btn-edit-profile" class="btn-action" style="display: none;" onclick="enableEditMode()">Sửa hồ sơ</button>
+                <button id="btn-edit-profile" class="btn-action" style="display: none; margin-top: 15px;" onclick="enableEditMode()">Sửa hồ sơ</button>
             </div>
 
             <div id="edit-mode" style="display: none;">
