@@ -5,9 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh Xuân Của Chúng Ta</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Bổ sung một số style trực tiếp để đảm bảo hiển thị đúng yêu cầu */
+        .nav-links { display: flex; align-items: center; list-style: none; gap: 20px; }
+        .custom-svg-icon { width: 22px; height: 22px; vertical-align: middle; margin-right: 8px; }
+        .track-circle { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; }
+        .circle-cyan { background: #48dbfb; border: 3px solid #0abde3; }
+        .circle-coral { background: #ff7675; }
+        .circle-blue { background: #74b9ff; }
+        .btn-add-photo { display: none; } /* Mặc định ẩn, hiện khi login */
+    </style>
 </head>
 <body>
 
@@ -27,18 +40,29 @@
     <div id="music-modal" class="modal" onclick="closeModal(event, 'music-modal')" style="display: none;">
         <div class="modal-box playlist-box">
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
+            
             <div class="now-playing" id="np-container">
-                <div id="np-icon" class="song-icon-large" style="background-color: #1dd1a1;">?</div>
+                <div id="np-icon" class="track-circle circle-cyan">1</div>
                 <div class="np-info">
-                    <h4 id="np-title">Chưa phát nhạc</h4>
+                    <h4 id="np-title">Đang phát: Tháng Năm Không Quên</h4>
                     <div class="np-controls">
-                        <span onclick="prevSong()">⏮️</span>
-                        <span id="play-pause-btn" onclick="togglePlayMusic()">▶️</span>
-                        <span onclick="nextSong()">⏭️</span>
+                        <span onclick="prevSong()"><i class="fas fa-backward-step"></i></span>
+                        <span id="play-pause-btn" onclick="togglePlayMusic()"><i class="fas fa-play"></i></span>
+                        <span onclick="nextSong()"><i class="fas fa-forward-step"></i></span>
                     </div>
                 </div>
             </div>
-            <div class="playlist-items" id="playlist-container"></div>
+
+            <div class="playlist-items" id="playlist-container">
+                <div class="music-item" onclick="playThis(1)">
+                    <div class="track-circle circle-coral">1</div>
+                    <div class="track-info"><span>Lời Pháo Hoa Rực Rỡ</span></div>
+                </div>
+                <div class="music-item" onclick="playThis(2)">
+                    <div class="track-circle circle-blue">2</div>
+                    <div class="track-info"><span>Tháng Năm Không Quên</span></div>
+                </div>
+            </div>
         </div>
     </div>
     <audio id="main-audio"></audio>
@@ -50,9 +74,9 @@
                 <li><a href="#trang-chu">Trang chủ</a></li>
                 <li><a href="#thanh-vien">Thành viên</a></li>
                 <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
+                <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">Nhạc</a></li>
             </ul>
             <div class="nav-right">
-                <button class="btn-menu" onclick="document.getElementById('music-modal').style.display='flex'">Nhạc</button>
                 <button class="btn-logout" id="auth-btn" onclick="toggleAuth()">Đăng nhập</button>
             </div>
         </div>
@@ -72,7 +96,7 @@
     <section id="khoanh-khac" class="container">
         <div class="moment-header">
             <h2 class="section-title" style="margin: 0;">Khoảnh Khắc</h2>
-            <button class="btn-menu" onclick="uploadNewMoment()">+ Thêm ảnh</button>
+            <button id="add-moment-btn" class="btn-menu btn-add-photo" onclick="uploadNewMoment()">+ Thêm ảnh</button>
         </div>
         <div class="grid-moments" id="moment-container"></div>
     </section>
@@ -86,12 +110,19 @@
                 <h3 id="modal-member-name" style="text-align:center; margin-bottom: 20px;"></h3>
                 
                 <div class="info-group hobbies-group">
-                    <strong>💎 Sở thích:</strong>
-                    <p id="modal-member-hobbies"></p>
+                    <svg class="custom-svg-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ff7675"/>
+                    </svg>
+                    <strong>Sở thích:</strong>
+                    <p id="modal-member-hobbies" style="display: inline;"></p>
                 </div>
-                <div class="info-group message-group">
-                    <strong>✉️ Lời nhắn:</strong>
-                    <p id="modal-member-message"></p>
+
+                <div class="info-group message-group" style="margin-top: 15px;">
+                    <svg class="custom-svg-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 11.5C21 16.1944 16.9706 20 12 20C10.6606 20 9.38914 19.7428 8.24355 19.2783C6.01524 20.3546 3.5 21 3.5 21C3.5 21 4.58045 18.7397 4.88726 17.514C3.70881 15.8927 3 13.7845 3 11.5C3 6.80558 7.02944 3 12 3C16.9706 3 21 6.80558 21 11.5Z" fill="#e0f2fe" stroke="#3498db" stroke-width="2"/>
+                    </svg>
+                    <strong>Lời nhắn:</strong>
+                    <p id="modal-member-message" style="display: inline;"></p>
                 </div>
                 
                 <button id="btn-edit-profile" class="btn-action" style="display: none; margin-top: 15px;" onclick="enableEditMode()">Sửa hồ sơ</button>
@@ -118,11 +149,11 @@
             <button class="nav-arrow next" onclick="changeMoment(1)">&#10095;</button>
 
             <div class="reaction-bar">
-                <span onclick="addReaction('love')">❤️</span>
-                <span onclick="addReaction('haha')">😆</span>
-                <span onclick="addReaction('wow')">😮</span>
-                <span onclick="addReaction('sad')">😢</span>
-                <span onclick="addReaction('angry')">😡</span>
+                <span class="react-item" onclick="addReaction('love')">❤️</span>
+                <span class="react-item" onclick="addReaction('haha')">😆</span>
+                <span class="react-item" onclick="addReaction('wow')">😮</span>
+                <span class="react-item" onclick="addReaction('sad')">😢</span>
+                <span class="react-item" onclick="addReaction('angry')">😡</span>
             </div>
             <div id="zoom-reaction-stats" class="zoom-stats"></div>
         </div>
