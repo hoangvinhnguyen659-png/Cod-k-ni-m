@@ -9,6 +9,11 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+// --- CẤU HÌNH BỔ SUNG TELEGRAM & WORKER ---
+const TELEGRAM_BOT_TOKEN = "8727433515:AAGcXg95sgxRghZcQXCzDO0bParEmjdq-uQ"; // Dán Token của bạn vào đây
+const TELEGRAM_CHAT_ID = "-1003326339658"; // Dán Chat ID Kênh (có dấu -100)
+const WORKER_URL = "https://photo.hoangvinhnguyen659.workers.dev/"; // Link Worker của bạn
+
 // 2. BIẾN TOÀN CỤC
 let allMembers = [];
 let allMoments = [];
@@ -27,7 +32,6 @@ const audio = document.getElementById('main-audio');
 
 // 3. KHỞI TẠO (ĐỒNG BỘ DỮ LIỆU)
 function init() {
-    // A. Lấy dữ liệu thành viên Realtime
     database.ref('users').on('value', snap => {
         let tempMembers = [];
         for (let i = 1; i <= 42; i++) {
@@ -36,7 +40,6 @@ function init() {
                 hobbies: 'Chưa cập nhật.', message: 'Yêu cả nhà!' 
             });
         }
-
         if (snap.exists()) {
             const data = snap.val();
             for (const key in data) {
@@ -44,14 +47,11 @@ function init() {
                 if (idx !== -1) tempMembers[idx] = { ...tempMembers[idx], ...data[key] };
             }
         }
-        
         allMembers = tempMembers;
         renderMembers();
-
         if (currentEditingId) updateModalUI(currentEditingId);
     });
 
-    // B. Lấy dữ liệu khoảnh khắc
     database.ref('moments').on('value', snap => {
         allMoments = [];
         if (snap.exists()) {
@@ -61,7 +61,6 @@ function init() {
             }
         }
         renderMoments();
-        // Cập nhật thống tại chỗ nếu đang mở ảnh
         if (document.getElementById('moment-modal').style.display === 'flex') {
             const m = allMoments[currentMomentIdx];
             if(m) updateZoomStats(m.reactions || {});
@@ -75,17 +74,25 @@ function init() {
     loadPlaylist();
 }
 
-// 4. HIỂN THỊ THÀNH VIÊN
+// 4. HÀM TRỢ GIÚP HIỂN THỊ ẢNH (TELEGRAM PROXY)
+function getImgUrl(path) {
+    if (!path) return '';
+    // Nếu là link web http thì dùng luôn, nếu là file_id Telegram thì qua Worker
+    return path.startsWith('http') ? path : `${WORKER_URL}?file_id=${path}`;
+}
+
+// 5. HIỂN THỊ THÀNH VIÊN
 function renderMembers() {
     const container = document.getElementById('member-container');
     if (!container) return;
     container.innerHTML = '';
     for (let i = 0; i < visibleMembersCount && i < allMembers.length; i++) {
         const m = allMembers[i];
-        let avatar = m.avatar ? `<img src="${m.avatar}">` : `<div class="placeholder-avatar">${m.id}</div>`;
+        let avatarSrc = getImgUrl(m.avatar);
+        let avatarTag = m.avatar ? `<img src="${avatarSrc}">` : `<div class="placeholder-avatar">${m.id}</div>`;
         container.innerHTML += `
             <div class="member-card" onclick="openMemberModal(${m.id})">
-                ${avatar}
+                ${avatarTag}
                 <div class="member-name-plate">${m.name}</div>
             </div>`;
     }
@@ -97,7 +104,7 @@ function loadAllMembers() {
     document.getElementById('btn-load-more-members').style.display = 'none';
 }
 
-// 5. CHI TIẾT THÀNH VIÊN & LƯU DỮ LIỆU
+// 6. CHI TIẾT THÀNH VIÊN & LƯU DỮ LIỆU
 function openMemberModal(id) {
     currentEditingId = id;
     updateModalUI(id);
@@ -118,9 +125,13 @@ function updateModalUI(id) {
     const placeholder = document.getElementById('modal-placeholder-avatar');
     
     if (m.avatar) {
-        img.src = m.avatar; img.style.display = 'block'; placeholder.style.display = 'none';
+        img.src = getImgUrl(m.avatar); 
+        img.style.display = 'block'; 
+        placeholder.style.display = 'none';
     } else {
-        img.style.display = 'none'; placeholder.innerText = m.id; placeholder.style.display = 'flex';
+        img.style.display = 'none'; 
+        placeholder.innerText = m.id; 
+        placeholder.style.display = 'flex';
     }
 
     document.getElementById('btn-edit-profile').style.display = (loggedInUserId === id) ? 'block' : 'none';
@@ -138,27 +149,52 @@ function enableEditMode() {
     document.getElementById('edit-mode').style.display = 'block';
 }
 
-function saveProfile() {
-    const saveBtn = document.querySelector('.btn-action');
-    const originalText = saveBtn.innerText;
+// --- HÀM UPLOAD ẢNH LÊN TELEGRAM ---
+async function uploadPhotoToTelegram(file) {
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('photo', file);
 
-    // Hiệu ứng chờ cho người dùng
-    saveBtn.innerText = "Đang lưu vĩnh viễn...";
-    saveBtn.style.opacity = "0.6";
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+        });
+        const res = await response.json();
+        if (res.ok) {
+            return res.result.photo[res.result.photo.length - 1].file_id;
+        }
+    } catch (err) {
+        console.error("Lỗi Telegram:", err);
+    }
+    return null;
+}
+
+async function saveProfile() {
+    const saveBtn = document.querySelector('#edit-mode .btn-action');
+    const fileInput = document.getElementById('edit-file-input'); // Cần input file trong HTML
+    let finalAvatar = document.getElementById('edit-avatar').value.trim();
+
+    saveBtn.innerText = "Đang tải ảnh & lưu...";
     saveBtn.disabled = true;
+
+    // Nếu chọn file từ máy, ưu tiên upload Telegram
+    if (fileInput && fileInput.files.length > 0) {
+        const fileId = await uploadPhotoToTelegram(fileInput.files[0]);
+        if (fileId) finalAvatar = fileId;
+    }
 
     const data = {
         name: document.getElementById('edit-name').value.trim() || `Thành viên ${currentEditingId}`,
         nickname: document.getElementById('edit-nickname').value.trim(),
-        avatar: document.getElementById('edit-avatar').value.trim(),
+        avatar: finalAvatar,
         hobbies: document.getElementById('edit-hobbies').value.trim() || 'Chưa cập nhật.',
         message: document.getElementById('edit-message').value.trim() || 'Yêu cả nhà!'
     };
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
-        showToast("Lưu thành công lên mây! ✨");
-        saveBtn.innerText = originalText;
-        saveBtn.style.opacity = "1";
+        showToast("Đã lưu vĩnh viễn! ✨");
+        saveBtn.innerText = "Lưu thay đổi";
         saveBtn.disabled = false;
         cancelEditMode();
     }).catch(err => {
@@ -172,13 +208,13 @@ function cancelEditMode() {
     document.getElementById('edit-mode').style.display = 'none';
 }
 
-// 6. KHOẢNH KHẮC & TƯƠNG TÁC
+// 7. KHOẢNH KHẮC & TƯƠNG TÁC
 function renderMoments() {
     const container = document.getElementById('moment-container');
     if (!container) return;
     container.innerHTML = '';
     allMoments.forEach((m, idx) => {
-        container.innerHTML += `<div class="moment-card" onclick="openMoment(${idx})"><img src="${m.url}"></div>`;
+        container.innerHTML += `<div class="moment-card" onclick="openMoment(${idx})"><img src="${getImgUrl(m.url)}"></div>`;
     });
 }
 
@@ -186,7 +222,7 @@ function openMoment(idx) {
     if(allMoments.length === 0) return;
     currentMomentIdx = idx;
     const m = allMoments[idx];
-    document.getElementById('zoom-img').src = m.url;
+    document.getElementById('zoom-img').src = getImgUrl(m.url);
     updateZoomStats(m.reactions || {});
     document.getElementById('moment-modal').style.display = 'flex';
 }
@@ -214,14 +250,25 @@ function updateZoomStats(reacts) {
     document.getElementById('zoom-reaction-stats').innerHTML = html || 'Chưa có tương tác nào';
 }
 
-function uploadNewMoment() {
-    const url = prompt("Dán link ảnh (URL):");
-    if (url && url.startsWith('http')) {
-        database.ref('moments').push().set({ url: url, reactions: { love: 0 } }).then(() => showToast("Đã thêm ảnh! 📸"));
-    }
+async function uploadNewMoment() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            showToast("Đang tải ảnh lên kho... ⏳");
+            const fileId = await uploadPhotoToTelegram(file);
+            if (fileId) {
+                database.ref('moments').push().set({ url: fileId, reactions: { love: 0 } })
+                .then(() => showToast("Đã thêm khoảnh khắc mới! 📸"));
+            }
+        }
+    };
+    fileInput.click();
 }
 
-// 7. ĐĂNG NHẬP & ĐĂNG XUẤT
+// 8. ĐĂNG NHẬP & ĐĂNG XUẤT (Giữ nguyên logic của bạn)
 function handleLogin() {
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
@@ -258,7 +305,7 @@ function updateUploadButton() {
     if (btn) btn.style.display = loggedInUserId ? 'block' : 'none';
 }
 
-// 8. LOGIC NHẠC
+// 9. LOGIC NHẠC
 function loadPlaylist() {
     const container = document.getElementById('playlist-container');
     if(!container) return;
@@ -287,7 +334,7 @@ function playSong(idx, autoPlay = true) {
     }
 }
 
-// 9. TIỆN ÍCH
+// 10. TIỆN ÍCH
 function showToast(msg) {
     const t = document.getElementById("toast");
     t.innerText = msg; t.className = "toast show";
