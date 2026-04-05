@@ -95,3 +95,80 @@ button { font-family: 'Quicksand', sans-serif; outline: none; border: none; padd
 .member-detail-box img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 15px; }
 .member-detail-box h3 { text-align: center; margin-bottom: 15px; }
 .info-group { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+/* --- BỔ SUNG CHO CHỨC NĂNG 42 THÀNH VIÊN --- */
+
+/* Avatar mặc định (Số thứ tự) cho Thẻ ngoài */
+.placeholder-avatar {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: white;
+    font-weight: bold;
+    font-family: 'Dancing Script', cursive;
+}
+
+/* Avatar mặc định cho trong Modal */
+.placeholder-avatar-round {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    font-weight: bold;
+    margin: 0 auto 15px;
+    font-family: 'Dancing Script', cursive;
+}
+
+#modal-avatar-container {
+    text-align: center;
+}
+
+/* Các trường nhập liệu trong chế độ sửa */
+.edit-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14px;
+}
+
+.edit-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.btn-action {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.btn-action:hover {
+    background: #10ac84;
+}
+
+.btn-cancel {
+    background: #ff7675;
+}
+
+.btn-cancel:hover {
+    background: #d63031;
+}
+
+#edit-mode h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2d3436;
+}
