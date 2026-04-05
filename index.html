@@ -13,35 +13,35 @@
 
     <div id="toast" class="toast">Nội dung thông báo</div>
 
-    <div id="login-mask" class="modal-login" style="display: none;">
+    <div id="login-mask" class="modal-login" style="display: none;" onclick="closeModal(event, 'login-mask')">
         <div class="login-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
             <h2>Đăng nhập</h2>
             <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Tài khoản: ban[số_thứ_tự]@lop.com</p>
             <input type="email" id="login-email" placeholder="Ví dụ: ban23@lop.com">
             <input type="password" id="login-pass" placeholder="Mật khẩu">
-            <button onclick="handleLogin()">Đăng nhập</button>
+            <button class="btn-action" onclick="handleLogin()">Đăng nhập</button>
         </div>
     </div>
 
     <div id="music-modal" class="modal" onclick="closeModal(event, 'music-modal')" style="display: none;">
         <div class="modal-box playlist-box">
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
-            <div class="now-playing">
+            <div class="now-playing" id="np-container">
                 <img id="np-img" src="https://placehold.co/100x100/1dd1a1/white?text=Music" alt="Playing">
                 <div class="np-info">
                     <h4 id="np-title">Chưa phát nhạc</h4>
                     <div class="np-controls">
-                        <svg onclick="prevSong()" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                        <svg onclick="togglePlayMusic()" id="play-pause-btn" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        <svg onclick="nextSong()" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                        <span onclick="prevSong()">⏮️</span>
+                        <span id="play-pause-btn" onclick="togglePlayMusic()">▶️</span>
+                        <span onclick="nextSong()">⏭️</span>
                     </div>
                 </div>
             </div>
             <div class="playlist-items" id="playlist-container"></div>
         </div>
     </div>
-    <audio id="main-audio" src=""></audio>
+    <audio id="main-audio"></audio>
 
     <nav>
         <div class="nav-container">
@@ -58,48 +58,53 @@
         </div>
     </nav>
 
-    <section id="trang-chu">
-        <div class="hero-content">
-            <h1>Thanh Xuân Của Chúng Ta</h1>
-            <p>"Những năm tháng rực rỡ dưới mái trường thân yêu"</p>
-        </div>
-    </section>
+    <div class="hero-content">
+        <h1>Thanh Xuân Của Chúng Ta</h1>
+        <p>"Những năm tháng rực rỡ dưới mái trường thân yêu"</p>
+    </div>
 
     <section id="thanh-vien" class="container">
-        <h2 class="section-title">Thành Viên</h2>
+        <h2 class="section-title">Thành Viên (42)</h2>
         <div class="grid-members" id="member-container"></div>
-        <button id="btn-load-more-members" class="btn-load-more" onclick="loadAllMembers()">Xem thêm thành viên</button>
+        <button id="btn-load-more-members" class="btn-load-more" onclick="loadAllMembers()">Xem tất cả</button>
     </section>
 
     <section id="khoanh-khac" class="container">
-        <h2 class="section-title">Khoảnh Khắc</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="section-title" style="margin: 0;">Khoảnh Khắc</h2>
+            <button class="btn-menu" onclick="uploadNewMoment()">+ Thêm ảnh</button>
+        </div>
         <div class="grid-moments" id="moment-container"></div>
-        <button id="btn-load-more-moments" class="btn-load-more" onclick="loadAllMoments()">Xem thêm ảnh</button>
     </section>
 
     <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')" style="display: none;">
-        <div class="modal-box member-detail-box">
+        <div class="modal-box">
             <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
             <div id="view-mode">
-                <div id="modal-avatar-container">
-                    <img id="modal-member-img" src="" alt="Avatar" style="display: none;">
-                    <div id="modal-placeholder-avatar" class="placeholder-avatar-round" style="display: none;"></div>
-                </div>
-                <h3 id="modal-member-name">Tên Thành Viên</h3>
+                <img id="modal-member-img" src="" style="width:100px; height:100px; border-radius:50%; margin: 0 auto 15px; display:block; object-fit:cover;">
+                <div id="modal-placeholder-avatar" class="placeholder-avatar-round"></div>
+                <h3 id="modal-member-name" style="text-align:center;"></h3>
+                
                 <div class="info-group">
+                    <strong>💎 Sở thích:</strong>
                     <p id="modal-member-hobbies"></p>
                 </div>
-                <button id="btn-edit-profile" class="btn-action" style="display: none; margin-top: 15px;" onclick="enableEditMode()">Sửa thông tin của tôi</button>
+                <div class="info-group message-group">
+                    <strong>✉️ Lời nhắn:</strong>
+                    <p id="modal-member-message"></p>
+                </div>
+                
+                <button id="btn-edit-profile" class="btn-action" style="display: none;" onclick="enableEditMode()">Sửa hồ sơ</button>
             </div>
+
             <div id="edit-mode" style="display: none;">
                 <h3>Cập Nhật Hồ Sơ</h3>
                 <input type="text" id="edit-name" placeholder="Họ và Tên" class="edit-input">
-                <input type="text" id="edit-avatar" placeholder="Link ảnh (URL)" class="edit-input">
-                <textarea id="edit-hobbies" placeholder="Sở thích..." class="edit-input" rows="3"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-action" onclick="saveProfile()">Lưu</button>
-                    <button class="btn-action btn-cancel" onclick="cancelEditMode()">Hủy</button>
-                </div>
+                <input type="text" id="edit-avatar" placeholder="Link ảnh đại diện" class="edit-input">
+                <textarea id="edit-hobbies" placeholder="Sở thích..." class="edit-input"></textarea>
+                <textarea id="edit-message" placeholder="Lời nhắn gửi lớp..." class="edit-input"></textarea>
+                <button class="btn-action" onclick="saveProfile()">Lưu</button>
+                <button class="btn-action btn-cancel" onclick="cancelEditMode()">Hủy</button>
             </div>
         </div>
     </div>
@@ -107,12 +112,17 @@
     <div id="moment-modal" class="modal" onclick="closeModal(event, 'moment-modal')" style="display: none;">
         <div class="modal-box zoom-box">
             <span class="close-btn" onclick="document.getElementById('moment-modal').style.display='none'">&times;</span>
+            
+            <button class="nav-arrow prev" onclick="changeMoment(-1)">&#10094;</button>
             <img id="zoom-img" src="" alt="Zoom">
+            <button class="nav-arrow next" onclick="changeMoment(1)">&#10095;</button>
+
             <div class="reaction-bar">
-                <span onclick="addReaction('❤️')">❤️</span>
-                <span onclick="addReaction('😂')">😂</span>
-                <span onclick="addReaction('😮')">😮</span>
-                <span onclick="addReaction('👍')">👍</span>
+                <span onclick="addReaction('love')">❤️</span>
+                <span onclick="addReaction('haha')">😆</span>
+                <span onclick="addReaction('wow')">😮</span>
+                <span onclick="addReaction('sad')">😢</span>
+                <span onclick="addReaction('angry')">😡</span>
             </div>
             <div id="zoom-reaction-stats" class="zoom-stats"></div>
         </div>
