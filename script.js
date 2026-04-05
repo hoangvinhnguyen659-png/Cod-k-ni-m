@@ -143,6 +143,7 @@ function updateModalUI(id) {
     }
 }
 
+// --- HÀM BẬT CHẾ ĐỘ SỬA & TẠO GIAO DIỆN UPLOAD ẢNH CHUYÊN NGHIỆP ---
 function enableEditMode() {
     const m = allMembers.find(x => x.id === currentEditingId);
     document.getElementById('edit-name').value = m.name.includes("Thành viên") ? "" : m.name;
@@ -151,6 +152,98 @@ function enableEditMode() {
     document.getElementById('edit-hobbies').value = m.hobbies === 'Chưa cập nhật.' ? "" : m.hobbies;
     document.getElementById('edit-message').value = m.message || "";
     
+    // Đổi chữ nút Lưu
+    const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
+    if (saveBtn) saveBtn.innerText = "Lưu";
+
+    // Ẩn Input chọn file cũ và dòng chữ màu đỏ
+    const fileInput = document.getElementById('edit-file-input');
+    if (fileInput) {
+        fileInput.style.display = 'none';
+        const labelText = fileInput.previousElementSibling;
+        if (labelText && labelText.tagName === 'LABEL') {
+            labelText.style.display = 'none';
+        }
+    }
+
+    // Tạo Avatar tròn để click up ảnh (Nếu chưa có thì tạo)
+    let editAvatarArea = document.getElementById('edit-avatar-area');
+    if (!editAvatarArea) {
+        editAvatarArea = document.createElement('div');
+        editAvatarArea.id = 'edit-avatar-area';
+        editAvatarArea.style.textAlign = 'center';
+        editAvatarArea.style.cursor = 'pointer';
+        editAvatarArea.style.position = 'relative';
+        editAvatarArea.style.margin = '0 auto 20px auto';
+        editAvatarArea.style.width = '120px';
+        editAvatarArea.style.height = '120px';
+        editAvatarArea.style.borderRadius = '50%';
+        editAvatarArea.style.border = '3px dashed #74b9ff'; 
+        editAvatarArea.style.overflow = 'hidden';
+        editAvatarArea.style.display = 'flex';
+        editAvatarArea.style.alignItems = 'center';
+        editAvatarArea.style.justifyContent = 'center';
+        editAvatarArea.style.backgroundColor = '#f1f2f6';
+        
+        editAvatarArea.innerHTML = `
+            <img id="edit-preview-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+            <div id="edit-preview-placeholder" style="font-size: 2.5rem; font-weight: bold; color: #a4b0be;"></div>
+            <div style="position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; font-size: 0.8rem; padding: 5px 0; font-weight: bold;">
+                <i class="fas fa-camera"></i> Đổi ảnh
+            </div>
+        `;
+        
+        const editMode = document.getElementById('edit-mode');
+        const firstLabel = editMode.querySelector('label'); 
+        editMode.insertBefore(editAvatarArea, firstLabel);
+
+        // Click vào Avatar sẽ mở hộp thoại chọn ảnh
+        editAvatarArea.onclick = () => { if (fileInput) fileInput.click(); };
+
+        // Xử lý tự động Upload & Preview khi chọn ảnh
+        if (fileInput) {
+            fileInput.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Preview ảnh ngay lập tức
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('edit-preview-img').src = event.target.result;
+                    document.getElementById('edit-preview-img').style.display = 'block';
+                    document.getElementById('edit-preview-placeholder').style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+
+                // Tự động Upload lên Telegram ngầm
+                showToast("Đang tải ảnh lên máy chủ... ⏳");
+                if (saveBtn) { saveBtn.innerText = "Đang tải ảnh... ⏳"; saveBtn.disabled = true; }
+                
+                const fileId = await uploadPhotoToTelegram(file);
+                if (fileId) {
+                    document.getElementById('edit-avatar').value = fileId;
+                    showToast("Tải ảnh xong! Nhấn 'Lưu' để hoàn tất. ✨");
+                } else {
+                    showToast("Lỗi khi tải ảnh lên Telegram! 😥");
+                }
+                if (saveBtn) { saveBtn.innerText = "Lưu"; saveBtn.disabled = false; }
+            });
+        }
+    }
+
+    // Hiển thị ảnh hiện tại trên Avatar tròn của Edit Mode
+    const previewImg = document.getElementById('edit-preview-img');
+    const previewPlaceholder = document.getElementById('edit-preview-placeholder');
+    if (m.avatar) {
+        previewImg.src = getImgUrl(m.avatar);
+        previewImg.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+    } else {
+        previewImg.style.display = 'none';
+        previewPlaceholder.innerText = m.id;
+        previewPlaceholder.style.display = 'block';
+    }
+
     document.getElementById('view-mode').style.display = 'none';
     document.getElementById('edit-mode').style.display = 'block';
 }
@@ -160,6 +253,16 @@ function removeCurrentAvatar() {
     if (!confirm("Bạn có chắc muốn gỡ ảnh đại diện hiện tại?")) return;
     document.getElementById('edit-avatar').value = "";
     document.getElementById('edit-file-input').value = "";
+    
+    // Cập nhật lại UI Preview ngay lập tức
+    const previewImg = document.getElementById('edit-preview-img');
+    const previewPlaceholder = document.getElementById('edit-preview-placeholder');
+    if (previewImg && previewPlaceholder) {
+        previewImg.style.display = 'none';
+        previewPlaceholder.innerText = currentEditingId;
+        previewPlaceholder.style.display = 'block';
+    }
+    
     showToast("Đã chọn gỡ ảnh. Hãy nhấn 'Lưu' để hoàn tất.");
 }
 
@@ -181,18 +284,13 @@ async function uploadPhotoToTelegram(file) {
     return null;
 }
 
+// LƯU HỒ SƠ 
 async function saveProfile() {
-    const saveBtn = document.querySelector('#edit-mode .btn-action:last-child');
-    const fileInput = document.getElementById('edit-file-input'); 
+    const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
     let finalAvatar = document.getElementById('edit-avatar').value.trim();
 
     saveBtn.innerText = "Đang lưu...";
     saveBtn.disabled = true;
-
-    if (fileInput && fileInput.files.length > 0) {
-        const fileId = await uploadPhotoToTelegram(fileInput.files[0]);
-        if (fileId) finalAvatar = fileId;
-    }
 
     const data = {
         name: document.getElementById('edit-name').value.trim() || `Thành viên ${currentEditingId}`,
@@ -204,7 +302,7 @@ async function saveProfile() {
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
         showToast("Đã cập nhật hồ sơ! ✨");
-        saveBtn.innerText = "Lưu vĩnh viễn ✨";
+        saveBtn.innerText = "Lưu";
         saveBtn.disabled = false;
         cancelEditMode();
     }).catch(err => {
