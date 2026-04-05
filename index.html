@@ -8,7 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,6 +16,7 @@
         <div class="login-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
             <h2>Đăng nhập lớp mình</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Đăng nhập để cập nhật thông tin thẻ của bạn</p>
             <input type="email" id="login-email" placeholder="Email (ban1@lop.com)">
             <input type="password" id="login-pass" placeholder="Mật khẩu">
             <button onclick="handleLogin()">Đăng nhập</button>
@@ -50,31 +50,46 @@
     </section>
 
     <section id="thanh-vien" class="container">
-        <h2 class="section-title">Thành Viên</h2>
+        <h2 class="section-title">Thành Viên (Sĩ Số: 42)</h2>
         <div class="grid-members" id="member-container"></div>
-        <button id="load-more-members" class="btn-load-more" style="display: none;" onclick="loadMoreMembers()">Xem thêm thành viên</button>
     </section>
 
     <section id="khoanh-khac" class="container">
         <h2 class="section-title">Khoảnh Khắc</h2>
         <div class="grid-moments" id="moment-container"></div>
-        <button id="load-more-moments" class="btn-load-more" style="display: none;" onclick="loadMoreMoments()">Xem thêm ảnh</button>
     </section>
 
     <section id="luu-but" class="container">
         <h2 class="section-title">Những Lời Nhắn Nhủ</h2>
         <div class="grid-notes" id="notes-container"></div>
-        <button id="load-more-notes" class="btn-load-more" style="display: none;" onclick="loadMoreNotes()">Xem thêm lời nhắn</button>
     </section>
 
     <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
         <div class="modal-box member-detail-box">
             <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
-            <img id="modal-member-img" src="" alt="Avatar" style="display: none;">
-            <h3 id="modal-member-name">Tên Thành Viên</h3>
-            <div class="info-group">
-                <svg class="custom-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #ff7675;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <p id="modal-member-hobbies"></p>
+            
+            <div id="view-mode">
+                <div id="modal-avatar-container">
+                    <img id="modal-member-img" src="" alt="Avatar" style="display: none;">
+                    <div id="modal-placeholder-avatar" class="placeholder-avatar-round" style="display: none;"></div>
+                </div>
+                <h3 id="modal-member-name">Tên Thành Viên</h3>
+                <div class="info-group">
+                    <svg class="custom-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #ff7675;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <p id="modal-member-hobbies"></p>
+                </div>
+                <button id="btn-edit-profile" class="btn-action" style="display: none; margin-top: 15px;" onclick="enableEditMode()">Sửa thông tin của tôi</button>
+            </div>
+
+            <div id="edit-mode" style="display: none;">
+                <h3>Cập Nhật Hồ Sơ</h3>
+                <input type="text" id="edit-name" placeholder="Họ và Tên của bạn" class="edit-input">
+                <input type="text" id="edit-avatar" placeholder="Link ảnh đại diện (URL)" class="edit-input">
+                <textarea id="edit-hobbies" placeholder="Sở thích, lời nhắn yêu cầu..." class="edit-input" rows="3"></textarea>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn-action" onclick="saveProfile()">Lưu lại</button>
+                    <button class="btn-action btn-cancel" onclick="cancelEditMode()">Hủy</button>
+                </div>
             </div>
         </div>
     </div>
