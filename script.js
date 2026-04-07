@@ -82,21 +82,24 @@ function getImgUrl(path) {
     return `${cleanWorker}?file_id=${path}`;
 }
 
-// 5. HIỂN THỊ THÀNH VIÊN
+// 5. HIỂN THỊ THÀNH VIÊN (ĐÃ TỐI ƯU HÓA HIỆU SUẤT)
 function renderMembers() {
     const container = document.getElementById('member-container');
     if (!container) return;
-    container.innerHTML = '';
+    
+    let htmlContent = ''; // Gom HTML để tránh lỗi giật lag DOM
     for (let i = 0; i < visibleMembersCount && i < allMembers.length; i++) {
         const m = allMembers[i];
         let avatarSrc = getImgUrl(m.avatar);
-        let avatarTag = m.avatar ? `<img src="${avatarSrc}">` : `<div class="placeholder-avatar"><i class="fa-solid fa-user"></i></div>`;
-        container.innerHTML += `
+        // Bổ sung loading="lazy" để giảm tải RAM khi load nhiều ảnh
+        let avatarTag = m.avatar ? `<img src="${avatarSrc}" loading="lazy">` : `<div class="placeholder-avatar"><i class="fa-solid fa-user"></i></div>`;
+        htmlContent += `
             <div class="member-card" onclick="openMemberModal(${m.id})">
                 ${avatarTag}
                 <div class="member-name-plate">${m.name}</div>
             </div>`;
     }
+    container.innerHTML = htmlContent; // Cập nhật DOM 1 lần duy nhất
 }
 
 function loadAllMembers() { 
@@ -130,7 +133,6 @@ function updateModalUI(id) {
         img.style.display = 'block'; 
         placeholder.style.display = 'none';
         
-        // --- ĐÃ BỔ SUNG: Tính năng phóng to ảnh đại diện ---
         img.style.cursor = 'zoom-in'; 
         img.onclick = () => viewFullScreen(getImgUrl(m.avatar));
     } else {
@@ -277,14 +279,17 @@ function cancelEditMode() {
     document.getElementById('edit-mode').style.display = 'none';
 }
 
-// 7. KHOẢNH KHẮC & TƯƠNG TÁC
+// 7. KHOẢNH KHẮC & TƯƠNG TÁC (ĐÃ TỐI ƯU HÓA HIỆU SUẤT)
 function renderMoments() {
     const container = document.getElementById('moment-container');
     if (!container) return;
-    container.innerHTML = '';
+    
+    let htmlContent = ''; // Gom HTML để tránh lỗi giật lag DOM
     allMoments.forEach((m, idx) => {
-        container.innerHTML += `<div class="moment-card" onclick="openMoment(${idx})"><img src="${getImgUrl(m.url)}"></div>`;
+        // Bổ sung loading="lazy"
+        htmlContent += `<div class="moment-card" onclick="openMoment(${idx})"><img src="${getImgUrl(m.url)}" loading="lazy"></div>`;
     });
+    container.innerHTML = htmlContent; // Cập nhật DOM 1 lần duy nhất
 }
 
 function openMoment(idx) {
@@ -292,12 +297,10 @@ function openMoment(idx) {
     currentMomentIdx = idx;
     const m = allMoments[idx];
     
-    // --- ĐÃ BỔ SUNG: Tính năng phóng to ảnh khoảnh khắc ---
     const zoomImg = document.getElementById('zoom-img');
     zoomImg.src = getImgUrl(m.url);
     zoomImg.style.cursor = 'zoom-in';
     zoomImg.onclick = () => viewFullScreen(getImgUrl(m.url));
-    // ------------------------------------------------------
 
     updateZoomStats(m.reactions || {}, m);
     document.getElementById('moment-modal').style.display = 'flex';
@@ -420,7 +423,6 @@ function playSong(idx, autoPlay = true) {
     }
     document.getElementById('np-title').innerText = "Đang phát: " + s.title;
     if(autoPlay && s.src) {
-        // Dùng getImgUrl để phát nhạc qua Worker
         audio.src = getImgUrl(s.src);
         audio.play().catch(e => console.log("Cần thao tác để phát nhạc"));
     }
@@ -441,7 +443,7 @@ function closeModal(e, id) {
     }
 }
 
-// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (MỚI BỔ SUNG)
+// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH
 function viewFullScreen(imgSrc) {
     if (!imgSrc) return;
     const overlay = document.getElementById('fullscreen-overlay');
