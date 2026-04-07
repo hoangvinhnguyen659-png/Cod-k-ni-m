@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cod kỉ niệm</title>
+    <title>Cod Kỉ Niệm - Thanh Xuân</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -15,18 +16,26 @@
 </head>
 <body>
 
-    <div id="toast" class="toast">Nội dung thông báo</div>
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-info"></i> Nội dung thông báo
+    </div>
 
     <div id="login-mask" class="modal" onclick="closeModal(event, 'login-mask')">
         <div class="modal-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
-            <h2 style="margin-bottom: 5px;">Đăng nhập</h2>
+            <h2><i class="fa-solid fa-lock"></i> Đăng nhập</h2>
             <p style="font-size: 12px; color: #888; margin-bottom: 20px;">Tài khoản: ban[số]@lop.com</p>
             
-            <input type="email" id="login-email" class="edit-input" placeholder="Tài khoản">
-            <input type="password" id="login-pass" class="edit-input" placeholder="Mật khẩu">
+            <div class="input-group">
+                <input type="email" id="login-email" class="edit-input" placeholder="Tài khoản (ví dụ: ban1@lop.com)">
+            </div>
+            <div class="input-group">
+                <input type="password" id="login-pass" class="edit-input" placeholder="Mật khẩu">
+            </div>
             
-            <button class="btn-action" onclick="handleLogin()">Đăng nhập</button>
+            <button class="btn-action" onclick="handleLogin()">
+                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+            </button>
         </div>
     </div>
 
@@ -35,8 +44,12 @@
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
             
             <div class="now-playing-container">
-                <div id="np-icon" class="track-circle circle-cyan" style="width: 70px; height: 70px; margin: 0 auto 15px; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">1</div>
-                <div id="np-title" style="text-align: center; font-weight: 700; margin-bottom: 15px; font-size: 0.9rem;">Đang phát: Lời Pháo Hoa Rực Rỡ</div>
+                <div id="np-icon" class="track-circle circle-cyan">
+                    <i class="fa-solid fa-compact-disc fa-spin"></i>
+                </div>
+                <div id="np-title" style="text-align: center; font-weight: 700; margin-bottom: 15px; font-size: 0.9rem;">
+                    Đang phát: Lời Pháo Hoa Rực Rỡ
+                </div>
                 
                 <div class="music-controls">
                     <i class="fas fa-backward-step" onclick="prevSong()"></i>
@@ -53,15 +66,19 @@
 
     <nav>
         <div class="nav-container">
-            <a href="#" class="logo">Thanh Xuân</a>
+            <a href="#" class="logo"><i class="fa-solid fa-feather-pointed"></i> Thanh Xuân</a>
             <ul class="nav-links">
-                <li><a href="#trang-chu">Trang chủ</a></li>
+                <li><a href="#trang-chu"><i class="fa-solid fa-house"></i></a></li>
                 <li><a href="#thanh-vien">Thành viên</a></li>
                 <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
-                <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">Nhạc</a></li>
+                <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">
+                    <i class="fa-solid fa-music"></i>
+                </a></li>
             </ul>
             <div class="nav-right">
-                <button class="btn-auth" id="auth-btn" onclick="toggleAuth()">Đăng nhập</button>
+                <button class="btn-auth" id="auth-btn" onclick="toggleAuth()">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                </button>
             </div>
         </div>
     </nav>
@@ -72,18 +89,20 @@
     </div>
 
     <section id="thanh-vien" class="container">
-        <h2 class="section-title">Thành Viên (42)</h2>
+        <h2 class="section-title"><i class="fa-solid fa-users-viewfinder"></i> Thành Viên (42)</h2>
         <div class="grid-members" id="member-container"></div>
         <div style="text-align: center; margin-top: 30px;">
-            <button id="btn-load-more-members" class="btn-secondary" onclick="loadAllMembers()">Xem tất cả thành viên</button>
+            <button id="btn-load-more-members" class="btn-secondary" onclick="loadAllMembers()">
+                Xem tất cả thành viên <i class="fa-solid fa-angles-down"></i>
+            </button>
         </div>
     </section>
 
     <section id="khoanh-khac" class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 class="section-title" style="margin: 0;">Khoảnh Khắc</h2>
+            <h2 class="section-title" style="margin: 0;"><i class="fa-solid fa-camera-retro"></i> Khoảnh Khắc</h2>
             <button id="add-moment-btn" class="btn-auth" onclick="uploadNewMoment()" style="display: none; padding: 8px 15px; font-size: 0.85rem;">
-                + Thêm ảnh
+                <i class="fa-solid fa-plus"></i> Đăng ảnh
             </button>
         </div>
         <div class="grid-moments" id="moment-container"></div>
@@ -96,7 +115,9 @@
             <div id="view-mode">
                 <div class="modal-avatar-wrapper">
                     <img id="modal-member-img" src="" style="display:none;">
-                    <div id="modal-placeholder-avatar" class="placeholder-avatar"></div>
+                    <div id="modal-placeholder-avatar" class="placeholder-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
                 </div>
 
                 <div class="member-title-info">
@@ -106,47 +127,52 @@
 
                 <div class="info-group hobbies-group">
                     <div class="info-text">
-                        <strong>SỞ THÍCH</strong>
+                        <strong><i class="fa-solid fa-star"></i> SỞ THÍCH</strong>
                         <p id="modal-member-hobbies"></p>
                     </div>
                 </div>
 
                 <div class="info-group message-group">
                     <div class="info-text">
-                        <strong>LỜI NHẮN</strong>
+                        <strong><i class="fa-solid fa-comment-dots"></i> LỜI NHẮN</strong>
                         <p id="modal-member-message"></p>
                     </div>
                 </div>
                 
-                <button id="btn-edit-profile" class="btn-action" style="display: none;" onclick="enableEditMode()">Chỉnh sửa thông tin</button>
+                <button id="btn-edit-profile" class="btn-action" style="display: none;" onclick="enableEditMode()">
+                    <i class="fa-solid fa-user-pen"></i> Chỉnh sửa hồ sơ
+                </button>
             </div>
 
             <div id="edit-mode" style="display: none;">
                 <h3 style="text-align: center; margin-bottom: 20px;">Cập Nhật Hồ Sơ</h3>
                 
-                <label class="edit-label">Họ và Tên:</label>
+                <label class="edit-label"><i class="fa-solid fa-signature"></i> Họ và Tên:</label>
                 <input type="text" id="edit-name" placeholder="Tên của bạn" class="edit-input">
                 
-                <label class="edit-label">Biệt danh:</label>
+                <label class="edit-label"><i class="fa-solid fa-at"></i> Biệt danh:</label>
                 <input type="text" id="edit-nickname" placeholder="Biệt danh" class="edit-input">
                 
                 <input type="file" id="edit-file-input" accept="image/*" style="display: none;">
-                
                 <input type="hidden" id="edit-avatar">
                 
-                <label class="edit-label">Sở thích:</label>
-                <textarea id="edit-hobbies" placeholder="Sở thích..." class="edit-input" rows="2"></textarea>
+                <label class="edit-label"><i class="fa-solid fa-heart-pulse"></i> Sở thích:</label>
+                <textarea id="edit-hobbies" placeholder="Bạn thích gì nào..." class="edit-input" rows="2"></textarea>
                 
-                <label class="edit-label">Lời nhắn:</label>
-                <textarea id="edit-message" placeholder="Lời nhắn..." class="edit-input" rows="2"></textarea>
+                <label class="edit-label"><i class="fa-solid fa-envelope-open-text"></i> Lời nhắn:</label>
+                <textarea id="edit-message" placeholder="Để lại vài lời cho lớp mình..." class="edit-input" rows="2"></textarea>
                 
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-action" style="flex: 2;" onclick="saveProfile()">Lưu thay đổi</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn-action" style="flex: 2;" onclick="saveProfile()">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu
+                    </button>
                     <button class="btn-secondary" style="flex: 1; margin: 0;" onclick="cancelEditMode()">Hủy</button>
                 </div>
 
                 <div style="text-align: center; margin-top: 15px;">
-                    <span style="font-size: 12px; color: #e74c3c; cursor: pointer; font-weight: bold;" onclick="removeCurrentAvatar()">Gỡ ảnh đại diện</span>
+                    <span style="font-size: 12px; color: #e74c3c; cursor: pointer; font-weight: bold;" onclick="removeCurrentAvatar()">
+                        <i class="fa-solid fa-circle-xmark"></i> Gỡ ảnh đại diện
+                    </span>
                 </div>
             </div>
         </div>
@@ -157,11 +183,11 @@
             <span class="close-btn" onclick="document.getElementById('moment-modal').style.display='none'">&times;</span>
             
             <div style="position: relative; text-align: center;">
-                <img id="zoom-img" src="" style="width: 100%; border-radius: 15px; max-height: 65vh; object-fit: contain; box-shadow: var(--shadow);">
+                <img id="zoom-img" src="" style="width: 100%; border-radius: 15px; max-height: 65vh; object-fit: contain;">
                 
-                <div style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 10px;">
-                    <i class="fas fa-chevron-left" onclick="changeMoment(-1)" style="color: white; font-size: 2rem; cursor: pointer; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
-                    <i class="fas fa-chevron-right" onclick="changeMoment(1)" style="color: white; font-size: 2rem; cursor: pointer; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
+                <div style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 10px; pointer-events: none;">
+                    <i class="fa-solid fa-circle-chevron-left" onclick="changeMoment(-1)" style="color: white; font-size: 2.5rem; cursor: pointer; pointer-events: auto; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
+                    <i class="fa-solid fa-circle-chevron-right" onclick="changeMoment(1)" style="color: white; font-size: 2.5rem; cursor: pointer; pointer-events: auto; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
                 </div>
             </div>
 
@@ -177,7 +203,7 @@
 
             <div style="text-align: center; margin-top: 15px;">
                 <button id="btn-delete-moment" class="btn-secondary" style="color: #e74c3c; display: none;" onclick="deleteMoment()">
-                    <i class="fas fa-trash-alt"></i> Xóa ảnh này
+                    <i class="fa-solid fa-trash-can"></i> Xóa ảnh kỉ niệm
                 </button>
             </div>
         </div>
