@@ -23,9 +23,9 @@ let currentMomentIdx = 0;
 let visibleMembersCount = 9;
 
 const songs = [
-    { id: 1, title: "Lời Pháo Hoa Rực Rỡ", class: "circle-coral", src: "" },
-    { id: 2, title: "Tháng Năm Không Quên", class: "circle-cyan", src: "" },
-    { id: 3, title: "Tình Bạn Diệu Kỳ", class: "circle-blue", src: "" }
+    { id: 1, title: "Lời Pháo Hoa Rực Rỡ", class: "circle-coral", src: "FILE_ID_BÀI_1" },
+    { id: 2, title: "Tháng Năm Không Quên", class: "circle-cyan", src: "FILE_ID_BÀI_2" },
+    { id: 3, title: "Tình Bạn Diệu Kỳ", class: "circle-blue", src: "FILE_ID_BÀI_3" }
 ];
 let currentSongIdx = 0;
 const audio = document.getElementById('main-audio');
@@ -36,7 +36,6 @@ function init() {
         let tempMembers = [];
         for (let i = 1; i <= 42; i++) {
             tempMembers.push({ 
-                // Đã xóa lời nhắn và sở thích mặc định
                 id: i, name: `Thành viên ${i}`, nickname: '', avatar: '', 
                 hobbies: '', message: '' 
             });
@@ -69,13 +68,13 @@ function init() {
     });
 
     if (loggedInUserId) {
-        document.getElementById('auth-btn').innerText = "Đăng xuất";
+        document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Đăng xuất';
     }
     updateUploadButton();
     loadPlaylist();
 }
 
-// 4. HÀM TRỢ GIÚP HIỂN THỊ ẢNH
+// 4. HÀM TRỢ GIÚP HIỂN THỊ ẢNH & NHẠC QUA WORKER
 function getImgUrl(path) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
@@ -91,7 +90,7 @@ function renderMembers() {
     for (let i = 0; i < visibleMembersCount && i < allMembers.length; i++) {
         const m = allMembers[i];
         let avatarSrc = getImgUrl(m.avatar);
-        let avatarTag = m.avatar ? `<img src="${avatarSrc}">` : `<div class="placeholder-avatar">${m.id}</div>`;
+        let avatarTag = m.avatar ? `<img src="${avatarSrc}">` : `<div class="placeholder-avatar"><i class="fa-solid fa-user"></i></div>`;
         container.innerHTML += `
             <div class="member-card" onclick="openMemberModal(${m.id})">
                 ${avatarTag}
@@ -120,7 +119,7 @@ function updateModalUI(id) {
 
     document.getElementById('modal-member-name').innerText = m.name;
     document.getElementById('modal-member-nickname').innerText = m.nickname ? `@${m.nickname}` : '';
-    document.getElementById('modal-member-hobbies').innerText = m.hobbies;
+    document.getElementById('modal-member-hobbies').innerHTML = `<i class="fa-solid fa-heart" style="color:#ff7675"></i> ${m.hobbies || 'Chưa cập nhật'}`;
     document.getElementById('modal-member-message').innerText = m.message;
     
     const img = document.getElementById('modal-member-img');
@@ -132,19 +131,19 @@ function updateModalUI(id) {
         placeholder.style.display = 'none';
     } else {
         img.style.display = 'none'; 
-        placeholder.innerText = m.id; 
+        placeholder.innerHTML = `<i class="fa-solid fa-user" style="font-size: 3rem; color: #a4b0be;"></i>`; 
         placeholder.style.display = 'flex';
     }
 
     const editBtn = document.getElementById('btn-edit-profile');
     if (loggedInUserId !== null && loggedInUserId === id) {
         editBtn.style.display = 'block';
+        editBtn.innerHTML = `<i class="fa-solid fa-user-pen"></i> Chỉnh sửa hồ sơ`;
     } else {
         editBtn.style.display = 'none';
     }
 }
 
-// --- HÀM BẬT CHẾ ĐỘ SỬA & TẠO GIAO DIỆN UPLOAD ẢNH CHUYÊN NGHIỆP ---
 function enableEditMode() {
     const m = allMembers.find(x => x.id === currentEditingId);
     document.getElementById('edit-name').value = m.name.includes("Thành viên") ? "" : m.name;
@@ -154,47 +153,25 @@ function enableEditMode() {
     document.getElementById('edit-message').value = m.message;
     
     const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
-    if (saveBtn) saveBtn.innerText = "Lưu";
+    if (saveBtn) saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`;
 
     const fileInput = document.getElementById('edit-file-input');
-    if (fileInput) {
-        fileInput.style.display = 'none';
-        const labelText = fileInput.previousElementSibling;
-        if (labelText && labelText.tagName === 'LABEL') {
-            labelText.style.display = 'none';
-        }
-    }
+    if (fileInput) fileInput.style.display = 'none';
 
     let editAvatarArea = document.getElementById('edit-avatar-area');
     if (!editAvatarArea) {
         editAvatarArea = document.createElement('div');
         editAvatarArea.id = 'edit-avatar-area';
-        editAvatarArea.style.textAlign = 'center';
-        editAvatarArea.style.cursor = 'pointer';
-        editAvatarArea.style.position = 'relative';
-        editAvatarArea.style.margin = '0 auto 20px auto';
-        editAvatarArea.style.width = '120px';
-        editAvatarArea.style.height = '120px';
-        editAvatarArea.style.borderRadius = '50%';
-        editAvatarArea.style.border = '3px dashed #74b9ff'; 
-        editAvatarArea.style.overflow = 'hidden';
-        editAvatarArea.style.display = 'flex';
-        editAvatarArea.style.alignItems = 'center';
-        editAvatarArea.style.justifyContent = 'center';
-        editAvatarArea.style.backgroundColor = '#f1f2f6';
+        editAvatarArea.style = "text-align:center; cursor:pointer; position:relative; margin:0 auto 20px auto; width:120px; height:120px; border-radius:50%; border:3px dashed #74b9ff; overflow:hidden; display:flex; align-items:center; justify-content:center; background-color:#f1f2f6;";
         
-        // Đã xóa icon FontAwesome ở đây
         editAvatarArea.innerHTML = `
             <img id="edit-preview-img" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-            <div id="edit-preview-placeholder" style="font-size: 2.5rem; font-weight: bold; color: #a4b0be;"></div>
-            <div style="position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; font-size: 0.8rem; padding: 5px 0; font-weight: bold;">
-                Đổi ảnh
-            </div>
+            <div id="edit-preview-placeholder" style="font-size: 2.5rem; color: #a4b0be;"><i class="fa-solid fa-camera"></i></div>
+            <div style="position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; font-size: 0.8rem; padding: 5px 0;">Đổi ảnh</div>
         `;
         
         const editMode = document.getElementById('edit-mode');
-        const firstLabel = editMode.querySelector('label'); 
-        editMode.insertBefore(editAvatarArea, firstLabel);
+        editMode.insertBefore(editAvatarArea, editMode.querySelector('label'));
 
         editAvatarArea.onclick = () => { if (fileInput) fileInput.click(); };
 
@@ -204,7 +181,7 @@ function enableEditMode() {
                 if (!file) return;
 
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = (event) => {
                     document.getElementById('edit-preview-img').src = event.target.result;
                     document.getElementById('edit-preview-img').style.display = 'block';
                     document.getElementById('edit-preview-placeholder').style.display = 'none';
@@ -212,16 +189,16 @@ function enableEditMode() {
                 reader.readAsDataURL(file);
 
                 showToast("Đang tải ảnh lên... ⏳");
-                if (saveBtn) { saveBtn.innerText = "Đang tải ảnh... ⏳"; saveBtn.disabled = true; }
+                if (saveBtn) { saveBtn.innerHTML = "Đang tải... ⏳"; saveBtn.disabled = true; }
                 
                 const fileId = await uploadPhotoToTelegram(file);
                 if (fileId) {
                     document.getElementById('edit-avatar').value = fileId;
-                    showToast("Tải ảnh xong! Nhấn 'Lưu' để hoàn tất. ✨");
+                    showToast("Tải ảnh xong! ✨");
                 } else {
                     showToast("Lỗi khi tải ảnh lên! 😥");
                 }
-                if (saveBtn) { saveBtn.innerText = "Lưu"; saveBtn.disabled = false; }
+                if (saveBtn) { saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`; saveBtn.disabled = false; }
             });
         }
     }
@@ -234,7 +211,6 @@ function enableEditMode() {
         previewPlaceholder.style.display = 'none';
     } else {
         previewImg.style.display = 'none';
-        previewPlaceholder.innerText = m.id;
         previewPlaceholder.style.display = 'block';
     }
 
@@ -246,41 +222,30 @@ function removeCurrentAvatar() {
     if (!confirm("Bạn có chắc muốn gỡ ảnh đại diện hiện tại?")) return;
     document.getElementById('edit-avatar').value = "";
     document.getElementById('edit-file-input').value = "";
-    
     const previewImg = document.getElementById('edit-preview-img');
     const previewPlaceholder = document.getElementById('edit-preview-placeholder');
-    if (previewImg && previewPlaceholder) {
-        previewImg.style.display = 'none';
-        previewPlaceholder.innerText = currentEditingId;
-        previewPlaceholder.style.display = 'block';
-    }
-    
-    showToast("Đã gỡ ảnh. Hãy nhấn 'Lưu' để hoàn tất.");
+    if (previewImg) previewImg.style.display = 'none';
+    if (previewPlaceholder) previewPlaceholder.style.display = 'block';
+    showToast("Đã gỡ ảnh.");
 }
 
 async function uploadPhotoToTelegram(file) {
     const formData = new FormData();
     formData.append('chat_id', TELEGRAM_CHAT_ID);
     formData.append('photo', file);
-
     try {
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-            method: 'POST',
-            body: formData
+            method: 'POST', body: formData
         });
         const res = await response.json();
-        if (res.ok) {
-            return res.result.photo[res.result.photo.length - 1].file_id;
-        }
+        if (res.ok) return res.result.photo[res.result.photo.length - 1].file_id;
     } catch (err) { console.error("Lỗi:", err); }
     return null;
 }
 
-// LƯU HỒ SƠ 
 async function saveProfile() {
     const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
     let finalAvatar = document.getElementById('edit-avatar').value.trim();
-
     saveBtn.innerText = "Đang lưu...";
     saveBtn.disabled = true;
 
@@ -294,7 +259,7 @@ async function saveProfile() {
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
         showToast("Đã cập nhật hồ sơ! ✨");
-        saveBtn.innerText = "Lưu";
+        saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`;
         saveBtn.disabled = false;
         cancelEditMode();
     }).catch(err => {
@@ -349,7 +314,10 @@ function updateZoomStats(reacts, momentObj) {
     document.getElementById('zoom-reaction-stats').innerHTML = html || 'Chưa có tương tác nào';
     
     const delBtn = document.getElementById('btn-delete-moment');
-    if (delBtn) delBtn.style.display = loggedInUserId ? 'inline-block' : 'none';
+    if (delBtn) {
+        delBtn.style.display = loggedInUserId ? 'inline-block' : 'none';
+        delBtn.innerHTML = `<i class="fa-solid fa-trash-can"></i> Xóa ảnh`;
+    }
 }
 
 function deleteMoment() {
@@ -391,7 +359,7 @@ function handleLogin() {
         loggedInUserId = parseInt(match[1]);
         localStorage.setItem('myApp_userId', loggedInUserId);
         document.getElementById('login-mask').style.display = 'none';
-        document.getElementById('auth-btn').innerText = "Đăng xuất";
+        document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Đăng xuất';
         updateUploadButton();
         const user = allMembers.find(m => m.id === loggedInUserId);
         showToast(`Chào ${user.nickname || user.name}! ✨`);
@@ -402,7 +370,7 @@ function toggleAuth() {
     if (loggedInUserId) {
         loggedInUserId = null;
         localStorage.removeItem('myApp_userId');
-        document.getElementById('auth-btn').innerText = "Đăng nhập";
+        document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
         updateUploadButton();
         showToast("Đã đăng xuất.");
         document.getElementById('member-modal').style.display = 'none';
@@ -411,7 +379,10 @@ function toggleAuth() {
 
 function updateUploadButton() {
     const btn = document.getElementById('add-moment-btn');
-    if (btn) btn.style.display = loggedInUserId ? 'block' : 'none';
+    if (btn) {
+        btn.style.display = loggedInUserId ? 'block' : 'none';
+        btn.innerHTML = `<i class="fa-solid fa-camera-retro"></i> Đăng ảnh kỷ niệm`;
+    }
 }
 
 // 9. LOGIC NHẠC
@@ -422,7 +393,7 @@ function loadPlaylist() {
     songs.forEach((s, i) => {
         container.innerHTML += `
         <div class="music-item" onclick="playSong(${i})">
-            <div class="track-circle ${s.class}">${s.id}</div>
+            <div class="track-circle ${s.class}"><i class="fa-solid fa-music"></i></div>
             <div class="track-info"><span>${s.title}</span></div>
         </div>`;
     });
@@ -434,19 +405,20 @@ function playSong(idx, autoPlay = true) {
     const npIcon = document.getElementById('np-icon');
     if (npIcon) { 
         npIcon.className = `track-circle ${s.class}`; 
-        npIcon.innerText = s.id; 
+        npIcon.innerHTML = `<i class="fa-solid fa-compact-disc fa-spin"></i>`; 
     }
     document.getElementById('np-title').innerText = "Đang phát: " + s.title;
     if(autoPlay && s.src) {
-        audio.src = s.src;
-        audio.play();
+        // Dùng getImgUrl để phát nhạc qua Worker
+        audio.src = getImgUrl(s.src);
+        audio.play().catch(e => console.log("Cần thao tác để phát nhạc"));
     }
 }
 
-// 10. TIỆN ÍCH THÔNG BÁO LÀM ĐẸP
+// 10. TIỆN ÍCH
 function showToast(msg) {
     const t = document.getElementById("toast");
-    t.innerText = msg; 
+    t.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${msg}`; 
     t.className = "toast show";
     setTimeout(() => t.className = "toast", 3000);
 }
