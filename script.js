@@ -129,6 +129,10 @@ function updateModalUI(id) {
         img.src = getImgUrl(m.avatar); 
         img.style.display = 'block'; 
         placeholder.style.display = 'none';
+        
+        // --- ĐÃ BỔ SUNG: Tính năng phóng to ảnh đại diện ---
+        img.style.cursor = 'zoom-in'; 
+        img.onclick = () => viewFullScreen(getImgUrl(m.avatar));
     } else {
         img.style.display = 'none'; 
         placeholder.innerHTML = `<i class="fa-solid fa-user" style="font-size: 3rem; color: #a4b0be;"></i>`; 
@@ -287,7 +291,14 @@ function openMoment(idx) {
     if(allMoments.length === 0) return;
     currentMomentIdx = idx;
     const m = allMoments[idx];
-    document.getElementById('zoom-img').src = getImgUrl(m.url);
+    
+    // --- ĐÃ BỔ SUNG: Tính năng phóng to ảnh khoảnh khắc ---
+    const zoomImg = document.getElementById('zoom-img');
+    zoomImg.src = getImgUrl(m.url);
+    zoomImg.style.cursor = 'zoom-in';
+    zoomImg.onclick = () => viewFullScreen(getImgUrl(m.url));
+    // ------------------------------------------------------
+
     updateZoomStats(m.reactions || {}, m);
     document.getElementById('moment-modal').style.display = 'flex';
 }
@@ -427,6 +438,28 @@ function closeModal(e, id) {
     if(e.target.id === id) {
         document.getElementById(id).style.display = 'none'; 
         if(id === 'member-modal') currentEditingId = null;
+    }
+}
+
+// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (MỚI BỔ SUNG)
+function viewFullScreen(imgSrc) {
+    if (!imgSrc) return;
+    const overlay = document.getElementById('fullscreen-overlay');
+    const img = document.getElementById('fullscreen-img');
+    if (overlay && img) {
+        img.src = imgSrc;
+        overlay.style.display = 'flex';
+    } else {
+        console.warn("Chưa thêm HTML cho giao diện xem ảnh toàn màn hình");
+    }
+}
+
+function closeFullScreen() {
+    const overlay = document.getElementById('fullscreen-overlay');
+    const img = document.getElementById('fullscreen-img');
+    if (overlay && img) {
+        overlay.style.display = 'none';
+        img.src = '';
     }
 }
 
