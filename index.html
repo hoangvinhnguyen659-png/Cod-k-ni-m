@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cod Kỉ Niệm - Thanh Xuân</title>
+    <title>Cod Kỉ Niệm</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -20,22 +20,25 @@
         <i class="fa-solid fa-circle-info"></i> Nội dung thông báo
     </div>
 
+    <div id="fullscreen-overlay" class="fullscreen-overlay" onclick="closeFullScreen()">
+        <span class="close-fullscreen">&times;</span>
+        <img id="fullscreen-img" src="" alt="Xem ảnh">
+    </div>
+
     <div id="login-mask" class="modal" onclick="closeModal(event, 'login-mask')">
         <div class="modal-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
-            <h2><i class="fa-solid fa-lock"></i> Đăng nhập</h2>
-            <p style="font-size: 12px; color: #888; margin-bottom: 20px;">Tài khoản: ban[số]@lop.com</p>
-            
-            <div class="input-group">
+            <div class="login-box">
+                <h2><i class="fa-solid fa-lock"></i> Đăng nhập</h2>
+                <p style="font-size: 12px; color: #888; margin-bottom: 20px;">Tài khoản: ban[số]@lop.com</p>
+                
                 <input type="email" id="login-email" class="edit-input" placeholder="Tài khoản (ví dụ: ban1@lop.com)">
-            </div>
-            <div class="input-group">
                 <input type="password" id="login-pass" class="edit-input" placeholder="Mật khẩu">
+                
+                <button class="btn-action" onclick="handleLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                </button>
             </div>
-            
-            <button class="btn-action" onclick="handleLogin()">
-                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
-            </button>
         </div>
     </div>
 
@@ -43,23 +46,23 @@
         <div class="modal-box">
             <span class="close-btn" onclick="document.getElementById('music-modal').style.display='none'">&times;</span>
             
-            <div class="now-playing-container">
-                <div id="np-icon" class="track-circle circle-cyan">
-                    <i class="fa-solid fa-compact-disc fa-spin"></i>
-                </div>
-                <div id="np-title" style="text-align: center; font-weight: 700; margin-bottom: 15px; font-size: 0.9rem;">
-                    Đang phát: Lời Pháo Hoa Rực Rỡ
+            <div class="music-player-box">
+                <div class="now-playing-info">
+                    <div id="np-icon" class="track-circle circle-cyan">
+                        <i class="fa-solid fa-compact-disc"></i>
+                    </div>
+                    <div id="np-title">Chọn một bài hát để bắt đầu...</div>
                 </div>
                 
                 <div class="music-controls">
-                    <i class="fas fa-backward-step" onclick="prevSong()"></i>
-                    <i id="play-pause-btn" class="fas fa-play" onclick="togglePlayMusic()"></i>
-                    <i class="fas fa-forward-step" onclick="nextSong()"></i>
+                    <i class="fas fa-backward-step" onclick="changeSong(-1)"></i>
+                    <i id="play-pause-btn" class="fas fa-play-circle" onclick="togglePlayMusic()"></i>
+                    <i class="fas fa-forward-step" onclick="changeSong(1)"></i>
                 </div>
-            </div>
 
-            <div id="playlist-container" class="playlist-scroll">
-                </div>
+                <div id="playlist-container" class="playlist-scroll">
+                    </div>
+            </div>
         </div>
     </div>
     <audio id="main-audio"></audio>
@@ -68,7 +71,7 @@
         <div class="nav-container">
             <a href="#" class="logo"><i class="fa-solid fa-feather-pointed"></i> Thanh Xuân</a>
             <ul class="nav-links">
-                <li><a href="#trang-chu"><i class="fa-solid fa-house"></i></a></li>
+                <li><a href="#trang-chu"><i class="fa-solid fa-house"></i> <span>Trang chủ</span></a></li>
                 <li><a href="#thanh-vien">Thành viên</a></li>
                 <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
                 <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">
@@ -90,9 +93,10 @@
 
     <section id="thanh-vien" class="container">
         <h2 class="section-title"><i class="fa-solid fa-users-viewfinder"></i> Thành Viên (42)</h2>
-        <div class="grid-members" id="member-container"></div>
+        <div id="member-container">
+            </div>
         <div style="text-align: center; margin-top: 30px;">
-            <button id="btn-load-more-members" class="btn-secondary" onclick="loadAllMembers()">
+            <button id="btn-load-more-members" class="btn-load-more" onclick="loadAllMembers()">
                 Xem tất cả thành viên <i class="fa-solid fa-angles-down"></i>
             </button>
         </div>
@@ -101,11 +105,12 @@
     <section id="khoanh-khac" class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h2 class="section-title" style="margin: 0;"><i class="fa-solid fa-camera-retro"></i> Khoảnh Khắc</h2>
-            <button id="add-moment-btn" class="btn-auth" onclick="uploadNewMoment()" style="display: none; padding: 8px 15px; font-size: 0.85rem;">
+            <button id="add-moment-btn" class="btn-auth" onclick="uploadNewMoment()" style="display: none;">
                 <i class="fa-solid fa-plus"></i> Đăng ảnh
             </button>
         </div>
-        <div class="grid-moments" id="moment-container"></div>
+        <div class="grid-moments" id="moment-container">
+            </div>
     </section>
 
     <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
@@ -114,7 +119,7 @@
             
             <div id="view-mode">
                 <div class="modal-avatar-wrapper">
-                    <img id="modal-member-img" src="" style="display:none;">
+                    <img id="modal-member-img" src="" style="display:none;" title="Click để phóng to">
                     <div id="modal-placeholder-avatar" class="placeholder-avatar">
                         <i class="fa-solid fa-user"></i>
                     </div>
@@ -147,20 +152,20 @@
             <div id="edit-mode" style="display: none;">
                 <h3 style="text-align: center; margin-bottom: 20px;">Cập Nhật Hồ Sơ</h3>
                 
-                <label class="edit-label"><i class="fa-solid fa-signature"></i> Họ và Tên:</label>
+                <label class="edit-label">Họ và Tên:</label>
                 <input type="text" id="edit-name" placeholder="Tên của bạn" class="edit-input">
                 
-                <label class="edit-label"><i class="fa-solid fa-at"></i> Biệt danh:</label>
+                <label class="edit-label">Biệt danh (không kèm @):</label>
                 <input type="text" id="edit-nickname" placeholder="Biệt danh" class="edit-input">
                 
                 <input type="file" id="edit-file-input" accept="image/*" style="display: none;">
                 <input type="hidden" id="edit-avatar">
                 
-                <label class="edit-label"><i class="fa-solid fa-heart-pulse"></i> Sở thích:</label>
-                <textarea id="edit-hobbies" placeholder="Bạn thích gì nào..." class="edit-input" rows="2"></textarea>
+                <label class="edit-label">Sở thích:</label>
+                <textarea id="edit-hobbies" placeholder="Bạn thích gì nào..." class="edit-input"></textarea>
                 
-                <label class="edit-label"><i class="fa-solid fa-envelope-open-text"></i> Lời nhắn:</label>
-                <textarea id="edit-message" placeholder="Để lại vài lời cho lớp mình..." class="edit-input" rows="2"></textarea>
+                <label class="edit-label">Lời nhắn cho lớp:</label>
+                <textarea id="edit-message" placeholder="Để lại vài lời cho lớp mình..." class="edit-input"></textarea>
                 
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <button class="btn-action" style="flex: 2;" onclick="saveProfile()">
@@ -171,7 +176,7 @@
 
                 <div style="text-align: center; margin-top: 15px;">
                     <span style="font-size: 12px; color: #e74c3c; cursor: pointer; font-weight: bold;" onclick="removeCurrentAvatar()">
-                        <i class="fa-solid fa-circle-xmark"></i> Gỡ ảnh đại diện
+                        <i class="fa-solid fa-circle-xmark"></i> Gỡ ảnh đại diện hiện tại
                     </span>
                 </div>
             </div>
@@ -182,8 +187,8 @@
         <div class="modal-box" style="max-width: 500px; padding: 15px;">
             <span class="close-btn" onclick="document.getElementById('moment-modal').style.display='none'">&times;</span>
             
-            <div style="position: relative; text-align: center;">
-                <img id="zoom-img" src="" style="width: 100%; border-radius: 15px; max-height: 65vh; object-fit: contain;">
+            <div class="zoom-img-container">
+                <img id="zoom-img" src="" title="Click để xem toàn màn hình">
                 
                 <div style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 10px; pointer-events: none;">
                     <i class="fa-solid fa-circle-chevron-left" onclick="changeMoment(-1)" style="color: white; font-size: 2.5rem; cursor: pointer; pointer-events: auto; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
@@ -203,7 +208,7 @@
 
             <div style="text-align: center; margin-top: 15px;">
                 <button id="btn-delete-moment" class="btn-secondary" style="color: #e74c3c; display: none;" onclick="deleteMoment()">
-                    <i class="fa-solid fa-trash-can"></i> Xóa ảnh kỉ niệm
+                    <i class="fa-solid fa-trash-can"></i> Xóa ảnh này
                 </button>
             </div>
         </div>
