@@ -197,7 +197,10 @@ function enableEditMode() {
                 showToast("Đang tải ảnh lên... ⏳");
                 if (saveBtn) { saveBtn.innerHTML = "Đang tải... ⏳"; saveBtn.disabled = true; }
                 
-                const fileId = await uploadPhotoToTelegram(file);
+                // MỚI: Nén avatar trước khi up (Giới hạn kích thước nhỏ hơn vì là avatar)
+                const compressedAvatar = await compressImage(file, 800, 800);
+                const fileId = await uploadPhotoToTelegram(compressedAvatar);
+                
                 if (fileId) {
                     document.getElementById('edit-avatar').value = fileId;
                     showToast("Tải ảnh xong! ✨");
@@ -235,6 +238,49 @@ function removeCurrentAvatar() {
     showToast("Đã gỡ ảnh.");
 }
 
+// MỚI: HÀM NÉN ẢNH CHỐNG GIẬT LAG & LỖI TELEGRAM
+function compressImage(file, maxWidth = 1920, maxHeight = 1080) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round(height * (maxWidth / width));
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round(width * (maxHeight / height));
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    const compressedFile = new File([blob], file.name, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now(),
+                    });
+                    resolve(compressedFile);
+                }, 'image/jpeg', 0.8);
+            };
+        };
+    });
+}
+
+// MỚI: ĐÃ SỬA ĐỂ BÁO LỖI RÕ RÀNG HƠN NẾU CÓ
 async function uploadPhotoToTelegram(file) {
     const formData = new FormData();
     formData.append('chat_id', TELEGRAM_CHAT_ID);
@@ -244,9 +290,16 @@ async function uploadPhotoToTelegram(file) {
             method: 'POST', body: formData
         });
         const res = await response.json();
-        if (res.ok) return res.result.photo[res.result.photo.length - 1].file_id;
-    } catch (err) { console.error("Lỗi:", err); }
-    return null;
+        if (res.ok) {
+            return res.result.photo[res.result.photo.length - 1].file_id;
+        } else {
+            console.error("Lỗi từ Telegram API:", res.description);
+            return null;
+        }
+    } catch (err) { 
+        console.error("Lỗi mạng khi upload:", err); 
+        return null;
+    }
 }
 
 async function saveProfile() {
@@ -345,19 +398,48 @@ function deleteMoment() {
     }
 }
 
+// MỚI: TẢI NHIỀU ẢNH CÙNG LÚC + KẾT HỢP NÉN ẢNH
 async function uploadNewMoment() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
+    fileInput.multiple = true; // Cho phép chọn nhiều ảnh
+    
     fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            showToast("Đang tải lên... ⏳");
-            const fileId = await uploadPhotoToTelegram(file);
+        const files = e.target.files;
+        if (files.length === 0) return;
+
+        showToast(`Đang xử lý và tải lên ${files.length} ảnh... ⏳`);
+        
+        let successCount = 0;
+        let failCount = 0;
+
+        // Vòng lặp tải lên lần lượt từng ảnh
+        for (let i = 0; i < files.length; i++) {
+            const originalFile = files[i];
+            
+            // 1. Nén ảnh
+            const compressedFile = await compressImage(originalFile);
+            
+            // 2. Upload Telegram
+            const fileId = await uploadPhotoToTelegram(compressedFile);
+            
             if (fileId) {
-                database.ref('moments').push().set({ url: fileId, reactions: { love: 0 } })
-                .then(() => showToast("Đã thêm ảnh! 📸"));
+                // 3. Đẩy lên Firebase
+                await database.ref('moments').push().set({ 
+                    url: fileId, 
+                    reactions: { love: 0 } 
+                });
+                successCount++;
+            } else {
+                failCount++;
             }
+        }
+
+        if (failCount === 0) {
+            showToast(`Đã thêm thành công ${successCount} ảnh! 📸`);
+        } else {
+            showToast(`Đã thêm ${successCount} ảnh. Lỗi ${failCount} ảnh! 😥`);
         }
     };
     fileInput.click();
