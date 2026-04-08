@@ -36,6 +36,14 @@ body {
     color: var(--dark); 
     line-height: 1.6;
     overflow-x: hidden;
+    word-wrap: break-word; /* Tối ưu: Ép các từ quá dài xuống dòng để không tràn khung */
+    overflow-wrap: break-word;
+}
+
+/* Tối ưu: Đảm bảo hình ảnh luôn co dãn vừa khung chứa */
+img {
+    max-width: 100%;
+    height: auto;
 }
 
 .container { padding: 40px 15px; max-width: 1200px; margin: auto; }
@@ -69,7 +77,7 @@ nav {
 @media (max-width: 768px) {
     .nav-container { flex-direction: row; padding: 5px 0; }
     .nav-links { gap: 15px; }
-    .nav-links a span { display: none; } /* Chỉ hiện icon trên mobile */
+    .nav-links a span { display: none; } 
     .nav-links i { font-size: 1.2rem; }
 }
 
@@ -114,7 +122,8 @@ button:active { transform: scale(0.95); }
 /* --- 5. GRID HỆ THỐNG --- */
 #member-container { 
     display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
+    /* Tối ưu: Thay vì fix cứng 3 cột, dùng auto-fill và minmax để tự co dãn vừa màn hình */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
     gap: clamp(12px, 2.5vw, 25px); 
     padding: 10px;
 }
@@ -130,6 +139,7 @@ button:active { transform: scale(0.95); }
     box-shadow: var(--shadow); transition: var(--transition); cursor: pointer; 
     position: relative; border: 1px solid rgba(0,0,0,0.02);
     will-change: transform;
+    display: flex; flex-direction: column; width: 100%;
 }
 .member-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-hover); }
 .moment-card:hover { transform: scale(1.03); z-index: 5; box-shadow: var(--shadow-hover); }
@@ -137,7 +147,20 @@ button:active { transform: scale(0.95); }
 .member-card img, .moment-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; transition: 0.6s ease; }
 .member-card:hover img { transform: scale(1.1); }
 
-.member-name-plate { padding: 15px 5px; text-align: center; font-weight: 800; font-size: 0.95rem; background: #fff; color: var(--dark); border-top: 1px solid #f8f9fa; }
+.member-name-plate { 
+    padding: 15px 10px; 
+    text-align: center; 
+    font-weight: 800; 
+    font-size: 0.95rem; 
+    background: #fff; 
+    color: var(--dark); 
+    border-top: 1px solid #f8f9fa; 
+    line-height: 1.4; /* Tối ưu: Tạo khoảng cách dòng chuẩn chống đè chữ */
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .placeholder-avatar { 
     width: 100%; aspect-ratio: 1/1; background: linear-gradient(135deg, #74b9ff, #a29bfe); 
@@ -172,24 +195,25 @@ button:active { transform: scale(0.95); }
 }
 
 .member-title-info { text-align: center; margin-bottom: 25px; }
-.member-title-info h2 { font-size: 1.8rem; color: var(--dark); font-weight: 800; margin-bottom: 5px; }
-.member-title-info span { color: var(--primary-dark); font-weight: 700; font-size: 0.9rem; background: #e3fcef; padding: 5px 15px; border-radius: 20px; display: inline-block; }
+.member-title-info h2 { font-size: 1.8rem; color: var(--dark); font-weight: 800; margin-bottom: 5px; word-break: break-word; }
+.member-title-info span { color: var(--primary-dark); font-weight: 700; font-size: 0.9rem; background: #e3fcef; padding: 5px 15px; border-radius: 20px; display: inline-block; word-break: break-word;}
 
 .info-group { display: flex; align-items: flex-start; gap: 15px; padding: 20px; border-radius: 25px; margin-bottom: 15px; transition: 0.3s; }
 .hobbies-group { background: var(--pink-bg); border: 1px solid #ffebeb; }
 .message-group { background: var(--blue-bg); border-left: 6px solid var(--blue); }
 
 .info-text strong { font-size: 0.7rem; color: var(--gray); text-transform: uppercase; display: block; letter-spacing: 1.5px; margin-bottom: 6px; }
-.info-text p { font-size: 1.05rem; color: var(--dark); font-weight: 600; line-height: 1.5; white-space: pre-line; }
+.info-text p { font-size: 1.05rem; color: var(--dark); font-weight: 600; line-height: 1.5; white-space: pre-line; word-break: break-word; }
 
 /* --- 8. NHẠC & PLAYLIST --- */
 .music-player-box { background: #fff; padding: 5px; border-radius: 25px; }
-.now-playing-info { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; }
+.now-playing-info { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; text-align: center;}
 
 .track-circle { 
     width: 75px; height: 75px; border-radius: 50%; 
     display: flex; align-items: center; justify-content: center; 
     color: white; font-size: 1.8rem; position: relative;
+    flex-shrink: 0;
 }
 .fa-spin { animation: fa-spin 4s infinite linear; }
 @keyframes fa-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -198,7 +222,7 @@ button:active { transform: scale(0.95); }
 .circle-coral { background: var(--coral); box-shadow: 0 0 20px rgba(255, 118, 117, 0.4); }
 .circle-blue { background: var(--blue); box-shadow: 0 0 20px rgba(116, 185, 255, 0.4); }
 
-#np-title { font-weight: 800; font-size: 1.1rem; text-align: center; color: var(--dark); margin-top: 10px; }
+#np-title { font-weight: 800; font-size: 1.1rem; text-align: center; color: var(--dark); margin-top: 10px; word-wrap: break-word; }
 
 .music-controls { display: flex; justify-content: center; align-items: center; gap: 35px; font-size: 1.5rem; margin: 20px 0; }
 .music-controls i { cursor: pointer; transition: 0.3s; color: var(--dark); opacity: 0.7; }
@@ -213,6 +237,8 @@ button:active { transform: scale(0.95); }
 }
 .music-item:hover { background: white; transform: translateX(5px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 .music-item .track-circle { width: 35px; height: 35px; font-size: 0.9rem; }
+.track-info { overflow: hidden; }
+.track-info span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 
 /* --- 9. EDIT MODE INPUTS --- */
 .edit-label { font-size: 0.85rem; font-weight: 700; color: var(--dark); margin: 0 0 8px 10px; display: block; }
@@ -272,16 +298,16 @@ textarea.edit-input { min-height: 110px; resize: none; }
 
 /* --- 12. TOAST NOTIFICATION --- */
 .toast {
-    visibility: hidden; min-width: 280px; background-color: #ffffff; 
+    visibility: hidden; min-width: 280px; max-width: 90%; background-color: #ffffff; 
     color: var(--dark); border-radius: 20px; padding: 18px 25px; 
     position: fixed; z-index: 9999; left: 50%; bottom: 30px;
     transform: translateX(-50%) translateY(30px); font-size: 1rem;
     box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.15); font-weight: 700; opacity: 0;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex; align-items: center; gap: 15px;
+    display: flex; align-items: center; gap: 15px; word-break: break-word;
 }
 .toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast i { color: var(--primary); font-size: 1.5rem; }
+.toast i { color: var(--primary); font-size: 1.5rem; flex-shrink: 0; }
 
 /* --- 13. LOGIN MASK --- */
 .login-mask {
@@ -300,15 +326,30 @@ textarea.edit-input { min-height: 110px; resize: none; }
 ::-webkit-scrollbar-thumb { background: #dcdde1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-/* --- 15. RESPONSIVE TINH CHỈNH --- */
+/* --- 15. RESPONSIVE TINH CHỈNH ĐIỆN THOẠI --- */
 @media (max-width: 480px) {
-    #member-container { grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 5px; }
-    .member-name-plate { font-size: 0.8rem; padding: 10px 2px; }
+    /* Tối ưu: Dùng auto-fill và minmax 110px giúp có thể dàn 2 hoặc 3 cột tùy màn hình mà chữ vẫn đủ không gian */
+    #member-container { 
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+        gap: 10px; 
+        padding: 5px; 
+    }
+    
+    .member-name-plate { 
+        font-size: 0.85rem; 
+        padding: 10px 5px; 
+    }
+
+    .grid-moments {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
+    }
+    
     .modal-box { padding: 30px 20px; width: 92%; border-radius: 30px; }
     .hero-content { border-radius: 0 0 45px 45px; padding: 50px 15px; }
     .music-controls { gap: 20px; }
     .member-title-info h2 { font-size: 1.5rem; }
-    .info-group { padding: 15px; border-radius: 20px; }
+    .info-group { padding: 15px; border-radius: 20px; flex-direction: column; align-items: flex-start; gap: 8px; }
     
     /* Tối ưu nút bấm trên Mobile */
     button { padding: 10px 20px; }
