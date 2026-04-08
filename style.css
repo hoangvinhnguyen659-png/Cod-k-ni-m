@@ -28,15 +28,13 @@
 html { 
     font-size: clamp(14px, 1.5vw, 16px); 
     scroll-behavior: smooth; 
-    /* ĐÃ SỬA: Dùng clip thay cho hidden để không làm hỏng thuộc tính sticky của Menu */
-    overflow-x: clip; 
+    overflow-x: clip; /* Dùng clip để không làm hỏng thuộc tính sticky */
 }
 
 body { 
     background: var(--bg-light); 
     color: var(--dark); 
     line-height: 1.6;
-    /* ĐÃ SỬA: Dùng clip thay cho hidden để bảo toàn sticky */
     overflow-x: clip;
     word-wrap: break-word; 
     overflow-wrap: break-word;
@@ -56,39 +54,86 @@ img {
     color: var(--dark); 
 }
 
-/* --- 2. THANH ĐIỀU HƯỚNG (NAV) --- */
+/* --- 2. THANH ĐIỀU HƯỚNG (NAV) - ĐÃ TỐI ƯU CO DÃN --- */
 nav { 
     background: rgba(255, 255, 255, 0.85); 
     backdrop-filter: blur(15px); 
     -webkit-backdrop-filter: blur(15px);
-    padding: 12px 5%; 
-    
-    /* ĐÃ TỐI ƯU CÁCH 1: Giữ menu dính chặt lên đỉnh */
+    padding: 10px 5%; 
     position: sticky; 
     top: 0; 
-    z-index: 9999; /* Đảm bảo luôn nằm trên cùng mọi nội dung */
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Bóng đổ đậm hơn chút để dễ phân biệt khi cuộn */
+    z-index: 9999; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06); 
 }
-.nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: auto; }
-.logo { font-family: 'Dancing Script', cursive; font-size: clamp(1.8rem, 4vw, 2.2rem); font-weight: bold; color: var(--primary-dark); text-decoration: none; transition: 0.3s; }
+
+.nav-container { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    max-width: 1200px; 
+    margin: auto;
+    gap: 10px;
+}
+
+.logo { 
+    font-family: 'Dancing Script', cursive; 
+    /* Tự động co dãn font chữ: Min 1.3rem - Max 2.2rem */
+    font-size: clamp(1.3rem, 3.5vw, 2.2rem); 
+    font-weight: bold; 
+    color: var(--primary-dark); 
+    text-decoration: none; 
+    transition: 0.3s;
+    white-space: nowrap;
+    flex-shrink: 1; /* Cho phép logo thu nhỏ lại trên màn hình hẹp */
+}
 .logo:hover { transform: scale(1.05); }
 
-.nav-links { display: flex; gap: clamp(15px, 3vw, 30px); list-style: none; align-items: center; }
-.nav-links a { text-decoration: none; color: var(--dark); font-size: 0.95rem; font-weight: 700; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+.nav-links { 
+    display: flex; 
+    /* Tự động co dãn khoảng cách giữa các icon: Min 8px - Max 30px */
+    gap: clamp(8px, 2vw, 30px); 
+    list-style: none; 
+    align-items: center;
+    flex-shrink: 0; /* Giữ nguyên menu icon không bị bóp méo */
+}
+
+.nav-links a { 
+    text-decoration: none; 
+    color: var(--dark); 
+    font-size: 0.95rem; 
+    font-weight: 700; 
+    transition: 0.3s; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
 .nav-links a:hover { color: var(--primary); transform: translateY(-2px); }
 
+/* Tối ưu nút Đăng nhập trên Nav */
+.btn-auth { 
+    background: var(--primary); 
+    color: white; 
+    box-shadow: 0 4px 15px rgba(29, 209, 161, 0.3); 
+    padding: clamp(8px, 1.2vw, 12px) clamp(12px, 2vw, 24px);
+    font-size: clamp(0.85rem, 1vw, 1rem);
+    white-space: nowrap;
+}
+
 @media (max-width: 768px) {
-    .nav-container { flex-direction: row; padding: 5px 0; }
-    .nav-links { gap: 15px; }
-    .nav-links a span { display: none; } 
+    .nav-container { flex-direction: row; }
+    .nav-links a span { display: none; } /* Ẩn chữ trên menu, chỉ hiện icon để tiết kiệm chỗ */
     .nav-links i { font-size: 1.2rem; }
+}
+
+@media (max-width: 380px) {
+    .logo { font-size: 1.1rem; } /* Thu nhỏ cực độ cho các máy màn hình nhỏ */
+    .nav-links { gap: 6px; }
 }
 
 /* --- 3. NÚT BẤM (BUTTONS) --- */
 button { border: none; padding: 12px 24px; border-radius: 25px; font-weight: 700; cursor: pointer; transition: var(--transition); outline: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; will-change: transform; border: 1px solid transparent; }
 button:active { transform: scale(0.95); }
 
-.btn-auth { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(29, 209, 161, 0.3); }
 .btn-auth:hover { background: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(29, 209, 161, 0.4); }
 
 .btn-action { 
@@ -208,7 +253,7 @@ button:active { transform: scale(0.95); }
 .info-text p { font-size: 1.05rem; color: var(--dark); font-weight: 600; line-height: 1.5; white-space: pre-line; word-break: break-word; }
 
 /* --- 8. NHẠC & PLAYLIST --- */
-.music-player-box { background: #fff; padding: 5px; border-radius: 25px; transform: translateZ(0); } /* Fix lỗi z-index cho Safari đưa lên đây luôn */
+.music-player-box { background: #fff; padding: 5px; border-radius: 25px; transform: translateZ(0); }
 .now-playing-info { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; text-align: center;}
 
 .track-circle { 
@@ -266,7 +311,7 @@ textarea.edit-input { min-height: 110px; resize: none; }
 
 .stats-bar { text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--gray); margin-top: 15px; background: #f9f9f9; padding: 12px; border-radius: 18px; }
 
-/* --- 11. XEM ẢNH TOÀN MÀN HÌNH (FULLSCREEN) - CẢI TIẾN --- */
+/* --- 11. XEM ẢNH TOÀN MÀN HÌNH (FULLSCREEN) --- */
 .fullscreen-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); 
     z-index: 9999; justify-content: center; align-items: center; 
@@ -328,7 +373,7 @@ textarea.edit-input { min-height: 110px; resize: none; }
 ::-webkit-scrollbar-thumb { background: #dcdde1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-/* --- 15. RESPONSIVE TINH CHỈNH ĐIỆN THOẠI --- */
+/* --- 15. RESPONSIVE TINH CHỈNH GRID 3 CỘT --- */
 @media (max-width: 480px) {
     #member-container { 
         grid-template-columns: repeat(3, 1fr); 
