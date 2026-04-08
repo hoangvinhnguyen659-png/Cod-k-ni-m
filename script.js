@@ -22,6 +22,12 @@ let currentEditingId = null;
 let currentMomentIdx = 0; 
 let visibleMembersCount = 9;
 
+// Biến cho tính năng xem ảnh toàn màn hình
+let isViewingMomentFullscreen = false;
+let isZoomed = false;
+let touchstartX = 0;
+let touchendX = 0;
+
 const songs = [
     { id: 1, title: "Lời Pháo Hoa Rực Rỡ", class: "circle-coral", src: "FILE_ID_BÀI_1" },
     { id: 2, title: "Tháng Năm Không Quên", class: "circle-cyan", src: "FILE_ID_BÀI_2" },
@@ -72,6 +78,8 @@ function init() {
     }
     updateUploadButton();
     loadPlaylist();
+    setupSwipeEvents();
+    setupLoginEnterKey();
 }
 
 // 4. HÀM TRỢ GIÚP HIỂN THỊ ẢNH & NHẠC QUA WORKER
@@ -82,16 +90,15 @@ function getImgUrl(path) {
     return `${cleanWorker}?file_id=${path}`;
 }
 
-// 5. HIỂN THỊ THÀNH VIÊN (ĐÃ TỐI ƯU HÓA HIỆU SUẤT)
+// 5. HIỂN THỊ THÀNH VIÊN
 function renderMembers() {
     const container = document.getElementById('member-container');
     if (!container) return;
     
-    let htmlContent = ''; // Gom HTML để tránh lỗi giật lag DOM
+    let htmlContent = ''; 
     for (let i = 0; i < visibleMembersCount && i < allMembers.length; i++) {
         const m = allMembers[i];
         let avatarSrc = getImgUrl(m.avatar);
-        // Bổ sung loading="lazy" để giảm tải RAM khi load nhiều ảnh
         let avatarTag = m.avatar ? `<img src="${avatarSrc}" loading="lazy">` : `<div class="placeholder-avatar"><i class="fa-solid fa-user"></i></div>`;
         htmlContent += `
             <div class="member-card" onclick="openMemberModal(${m.id})">
@@ -99,7 +106,7 @@ function renderMembers() {
                 <div class="member-name-plate">${m.name}</div>
             </div>`;
     }
-    container.innerHTML = htmlContent; // Cập nhật DOM 1 lần duy nhất
+    container.innerHTML = htmlContent; 
 }
 
 function loadAllMembers() { 
@@ -134,7 +141,7 @@ function updateModalUI(id) {
         placeholder.style.display = 'none';
         
         img.style.cursor = 'zoom-in'; 
-        img.onclick = () => viewFullScreen(getImgUrl(m.avatar));
+        img.onclick = () => viewFullScreen(getImgUrl(m.avatar), false); // Avatar truyền false
     } else {
         img.style.display = 'none'; 
         placeholder.innerHTML = `<i class="fa-solid fa-user" style="font-size: 3rem; color: #a4b0be;"></i>`; 
@@ -194,18 +201,17 @@ function enableEditMode() {
                 }
                 reader.readAsDataURL(file);
 
-                showToast("Đang tải ảnh lên... ⏳");
-                if (saveBtn) { saveBtn.innerHTML = "Đang tải... ⏳"; saveBtn.disabled = true; }
+                showToast("Đang tải ảnh lên...");
+                if (saveBtn) { saveBtn.innerHTML = "Đang tải..."; saveBtn.disabled = true; }
                 
-                // MỚI: Nén avatar trước khi up (Giới hạn kích thước nhỏ hơn vì là avatar)
                 const compressedAvatar = await compressImage(file, 800, 800);
                 const fileId = await uploadPhotoToTelegram(compressedAvatar);
                 
                 if (fileId) {
                     document.getElementById('edit-avatar').value = fileId;
-                    showToast("Tải ảnh xong! ✨");
+                    showToast("Tải ảnh xong!");
                 } else {
-                    showToast("Lỗi khi tải ảnh lên! 😥");
+                    showToast("Lỗi khi tải ảnh lên!");
                 }
                 if (saveBtn) { saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`; saveBtn.disabled = false; }
             });
@@ -238,7 +244,6 @@ function removeCurrentAvatar() {
     showToast("Đã gỡ ảnh.");
 }
 
-// MỚI: HÀM NÉN ẢNH CHỐNG GIẬT LAG & LỖI TELEGRAM
 function compressImage(file, maxWidth = 1920, maxHeight = 1080) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -280,7 +285,6 @@ function compressImage(file, maxWidth = 1920, maxHeight = 1080) {
     });
 }
 
-// MỚI: ĐÃ SỬA ĐỂ BÁO LỖI RÕ RÀNG HƠN NẾU CÓ
 async function uploadPhotoToTelegram(file) {
     const formData = new FormData();
     formData.append('chat_id', TELEGRAM_CHAT_ID);
@@ -317,7 +321,7 @@ async function saveProfile() {
     };
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
-        showToast("Đã cập nhật hồ sơ! ✨");
+        showToast("Đã cập nhật hồ sơ!");
         saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`;
         saveBtn.disabled = false;
         cancelEditMode();
@@ -332,17 +336,16 @@ function cancelEditMode() {
     document.getElementById('edit-mode').style.display = 'none';
 }
 
-// 7. KHOẢNH KHẮC & TƯƠNG TÁC (ĐÃ TỐI ƯU HÓA HIỆU SUẤT)
+// 7. KHOẢNH KHẮC & TƯƠNG TÁC
 function renderMoments() {
     const container = document.getElementById('moment-container');
     if (!container) return;
     
-    let htmlContent = ''; // Gom HTML để tránh lỗi giật lag DOM
+    let htmlContent = ''; 
     allMoments.forEach((m, idx) => {
-        // Bổ sung loading="lazy"
         htmlContent += `<div class="moment-card" onclick="openMoment(${idx})"><img src="${getImgUrl(m.url)}" loading="lazy"></div>`;
     });
-    container.innerHTML = htmlContent; // Cập nhật DOM 1 lần duy nhất
+    container.innerHTML = htmlContent; 
 }
 
 function openMoment(idx) {
@@ -353,7 +356,7 @@ function openMoment(idx) {
     const zoomImg = document.getElementById('zoom-img');
     zoomImg.src = getImgUrl(m.url);
     zoomImg.style.cursor = 'zoom-in';
-    zoomImg.onclick = () => viewFullScreen(getImgUrl(m.url));
+    zoomImg.onclick = () => viewFullScreen(getImgUrl(m.url), true); // Kỷ niệm truyền true
 
     updateZoomStats(m.reactions || {}, m);
     document.getElementById('moment-modal').style.display = 'flex';
@@ -363,7 +366,11 @@ function changeMoment(step) {
     currentMomentIdx += step;
     if (currentMomentIdx < 0) currentMomentIdx = allMoments.length - 1;
     if (currentMomentIdx >= allMoments.length) currentMomentIdx = 0;
-    openMoment(currentMomentIdx);
+    
+    // Nếu đang xem trong modal
+    if(document.getElementById('moment-modal').style.display === 'flex') {
+        openMoment(currentMomentIdx);
+    }
 }
 
 function addReaction(type) {
@@ -392,54 +399,50 @@ function deleteMoment() {
     if (!m) return;
     if (confirm("Xóa vĩnh viễn ảnh kỷ niệm này?")) {
         database.ref('moments/' + m.id).remove().then(() => {
-            showToast("Đã xóa ảnh! 🗑️");
+            showToast("Đã xóa ảnh!");
             document.getElementById('moment-modal').style.display = 'none';
         });
     }
 }
 
-// MỚI: TẢI NHIỀU ẢNH CÙNG LÚC + KẾT HỢP NÉN ẢNH
+// TẢI NHIỀU ẢNH CÙNG LÚC + KẾT HỢP NÉN ẢNH VÀ XỬ LÝ SONG SONG
 async function uploadNewMoment() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
-    fileInput.multiple = true; // Cho phép chọn nhiều ảnh
+    fileInput.multiple = true; 
     
     fileInput.onchange = async (e) => {
         const files = e.target.files;
         if (files.length === 0) return;
 
-        showToast(`Đang xử lý và tải lên ${files.length} ảnh... ⏳`);
+        showToast(`Đang xử lý và tải lên ${files.length} ảnh...`);
         
-        let successCount = 0;
-        let failCount = 0;
-
-        // Vòng lặp tải lên lần lượt từng ảnh
-        for (let i = 0; i < files.length; i++) {
-            const originalFile = files[i];
-            
-            // 1. Nén ảnh
-            const compressedFile = await compressImage(originalFile);
-            
-            // 2. Upload Telegram
-            const fileId = await uploadPhotoToTelegram(compressedFile);
-            
-            if (fileId) {
-                // 3. Đẩy lên Firebase
-                await database.ref('moments').push().set({ 
-                    url: fileId, 
-                    reactions: { love: 0 } 
-                });
-                successCount++;
-            } else {
-                failCount++;
+        const uploadPromises = Array.from(files).map(async (originalFile) => {
+            try {
+                const compressedFile = await compressImage(originalFile);
+                const fileId = await uploadPhotoToTelegram(compressedFile);
+                if (fileId) {
+                    await database.ref('moments').push().set({ 
+                        url: fileId, 
+                        reactions: { love: 0 } 
+                    });
+                    return true;
+                }
+            } catch (err) {
+                console.error("Lỗi khi tải ảnh:", err);
             }
-        }
+            return false;
+        });
+
+        const results = await Promise.all(uploadPromises);
+        const successCount = results.filter(res => res === true).length;
+        const failCount = files.length - successCount;
 
         if (failCount === 0) {
-            showToast(`Đã thêm thành công ${successCount} ảnh! 📸`);
+            showToast(`Đã thêm thành công ${successCount} ảnh!`);
         } else {
-            showToast(`Đã thêm ${successCount} ảnh. Lỗi ${failCount} ảnh! 😥`);
+            showToast(`Đã thêm ${successCount} ảnh. Lỗi ${failCount} ảnh!`);
         }
     };
     fileInput.click();
@@ -458,7 +461,7 @@ function handleLogin() {
         document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Đăng xuất';
         updateUploadButton();
         const user = allMembers.find(m => m.id === loggedInUserId);
-        showToast(`Chào ${user.nickname || user.name}! ✨`);
+        showToast(`Chào ${user.nickname || user.name}!`);
     } else { showToast("Thông tin không đúng!"); }
 }
 
@@ -479,6 +482,17 @@ function updateUploadButton() {
         btn.style.display = loggedInUserId ? 'block' : 'none';
         btn.innerHTML = `<i class="fa-solid fa-camera-retro"></i> Đăng ảnh kỷ niệm`;
     }
+}
+
+// Lắng nghe sự kiện Enter khi đăng nhập
+function setupLoginEnterKey() {
+    const emailInput = document.getElementById('login-email');
+    const passInput = document.getElementById('login-pass');
+    const handleEnter = (e) => {
+        if (e.key === 'Enter') handleLogin();
+    };
+    if (emailInput) emailInput.addEventListener('keypress', handleEnter);
+    if (passInput) passInput.addEventListener('keypress', handleEnter);
 }
 
 // 9. LOGIC NHẠC
@@ -525,14 +539,27 @@ function closeModal(e, id) {
     }
 }
 
-// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH
-function viewFullScreen(imgSrc) {
+// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM & SWIPE)
+function viewFullScreen(imgSrc, isMoment = false) {
     if (!imgSrc) return;
+    isViewingMomentFullscreen = isMoment; 
+    isZoomed = false; 
+
     const overlay = document.getElementById('fullscreen-overlay');
     const img = document.getElementById('fullscreen-img');
     if (overlay && img) {
         img.src = imgSrc;
         overlay.style.display = 'flex';
+        img.style.transform = "scale(1)";
+        img.style.transition = "transform 0.2s ease"; 
+        
+        // Sự kiện click để zoom
+        img.onclick = function(e) {
+            e.stopPropagation(); // Ngăn sự kiện click làm đóng overlay
+            isZoomed = !isZoomed;
+            img.style.transform = isZoomed ? "scale(2.5)" : "scale(1)";
+            img.style.cursor = isZoomed ? "zoom-out" : "zoom-in";
+        };
     } else {
         console.warn("Chưa thêm HTML cho giao diện xem ảnh toàn màn hình");
     }
@@ -544,6 +571,46 @@ function closeFullScreen() {
     if (overlay && img) {
         overlay.style.display = 'none';
         img.src = '';
+        img.style.transform = "scale(1)";
+    }
+}
+
+// Lắng nghe sự kiện vuốt trên điện thoại
+function setupSwipeEvents() {
+    const fsOverlay = document.getElementById('fullscreen-overlay');
+    if (fsOverlay) {
+        fsOverlay.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        fsOverlay.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+    }
+}
+
+function handleSwipe() {
+    if (!isViewingMomentFullscreen) return; 
+    if (isZoomed) return; 
+    
+    if (touchendX < touchstartX - 50) {
+        changeMoment(1);
+        updateFullscreenImage();
+    }
+    if (touchendX > touchstartX + 50) {
+        changeMoment(-1);
+        updateFullscreenImage();
+    }
+}
+
+function updateFullscreenImage() {
+    const m = allMoments[currentMomentIdx];
+    const img = document.getElementById('fullscreen-img');
+    if (m && img) {
+        img.src = getImgUrl(m.url);
+        img.style.transform = "scale(1)"; 
+        isZoomed = false;
     }
 }
 
