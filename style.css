@@ -314,7 +314,8 @@ textarea.edit-input { min-height: 110px; resize: none; }
 /* --- 11. XEM ẢNH TOÀN MÀN HÌNH (FULLSCREEN) --- */
 .fullscreen-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); 
-    z-index: 10000; justify-content: center; align-items: center; 
+    z-index: 99999; /* Đã nâng giá trị lên cao nhất để đè các thành phần khác */
+    justify-content: center; align-items: center; 
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     animation: fadeIn 0.25s ease-out; touch-action: none;
 }
@@ -328,7 +329,8 @@ textarea.edit-input { min-height: 110px; resize: none; }
 
 .close-fullscreen { 
     position: absolute; top: 25px; right: 25px; 
-    color: white; font-size: 35px; cursor: pointer; z-index: 10001;
+    color: white; font-size: 35px; cursor: pointer; 
+    z-index: 100000; /* Nâng giá trị để đảm bảo nút đóng không bị che khuất */
     background: rgba(255,255,255,0.1); width: 50px; height: 50px;
     display: flex; align-items: center; justify-content: center; border-radius: 50%;
 }
