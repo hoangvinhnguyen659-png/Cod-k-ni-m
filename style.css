@@ -28,19 +28,20 @@
 html { 
     font-size: clamp(14px, 1.5vw, 16px); 
     scroll-behavior: smooth; 
-    overflow-x: hidden;
+    /* ĐÃ SỬA: Dùng clip thay cho hidden để không làm hỏng thuộc tính sticky của Menu */
+    overflow-x: clip; 
 }
 
 body { 
     background: var(--bg-light); 
     color: var(--dark); 
     line-height: 1.6;
-    overflow-x: hidden;
-    word-wrap: break-word; /* Tối ưu: Ép các từ quá dài xuống dòng để không tràn khung */
+    /* ĐÃ SỬA: Dùng clip thay cho hidden để bảo toàn sticky */
+    overflow-x: clip;
+    word-wrap: break-word; 
     overflow-wrap: break-word;
 }
 
-/* Tối ưu: Đảm bảo hình ảnh luôn co dãn vừa khung chứa */
 img {
     max-width: 100%;
     height: auto;
@@ -61,10 +62,12 @@ nav {
     backdrop-filter: blur(15px); 
     -webkit-backdrop-filter: blur(15px);
     padding: 12px 5%; 
+    
+    /* ĐÃ TỐI ƯU CÁCH 1: Giữ menu dính chặt lên đỉnh */
     position: sticky; 
     top: 0; 
-    z-index: 1000; 
-    box-shadow: 0 2px 20px rgba(0,0,0,0.04); 
+    z-index: 9999; /* Đảm bảo luôn nằm trên cùng mọi nội dung */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Bóng đổ đậm hơn chút để dễ phân biệt khi cuộn */
 }
 .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: auto; }
 .logo { font-family: 'Dancing Script', cursive; font-size: clamp(1.8rem, 4vw, 2.2rem); font-weight: bold; color: var(--primary-dark); text-decoration: none; transition: 0.3s; }
@@ -122,7 +125,6 @@ button:active { transform: scale(0.95); }
 /* --- 5. GRID HỆ THỐNG --- */
 #member-container { 
     display: grid; 
-    /* Đã sửa: Ép cứng 3 cột để luôn hiện 3 thành viên/hàng */
     grid-template-columns: repeat(3, 1fr); 
     gap: clamp(12px, 2.5vw, 25px); 
     padding: 10px;
@@ -130,7 +132,6 @@ button:active { transform: scale(0.95); }
 
 .grid-moments { 
     display: grid; 
-    /* Giữ nguyên auto-fill cho khoảnh khắc */
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
     gap: 15px; 
 }
@@ -156,7 +157,7 @@ button:active { transform: scale(0.95); }
     background: #fff; 
     color: var(--dark); 
     border-top: 1px solid #f8f9fa; 
-    line-height: 1.4; /* Tối ưu: Tạo khoảng cách dòng chuẩn chống đè chữ */
+    line-height: 1.4; 
     flex-grow: 1;
     display: flex;
     align-items: center;
@@ -207,7 +208,7 @@ button:active { transform: scale(0.95); }
 .info-text p { font-size: 1.05rem; color: var(--dark); font-weight: 600; line-height: 1.5; white-space: pre-line; word-break: break-word; }
 
 /* --- 8. NHẠC & PLAYLIST --- */
-.music-player-box { background: #fff; padding: 5px; border-radius: 25px; }
+.music-player-box { background: #fff; padding: 5px; border-radius: 25px; transform: translateZ(0); } /* Fix lỗi z-index cho Safari đưa lên đây luôn */
 .now-playing-info { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; text-align: center;}
 
 .track-circle { 
@@ -329,7 +330,6 @@ textarea.edit-input { min-height: 110px; resize: none; }
 
 /* --- 15. RESPONSIVE TINH CHỈNH ĐIỆN THOẠI --- */
 @media (max-width: 480px) {
-    /* Đã sửa: Ép cứng 3 cột ngay cả trên giao diện điện thoại */
     #member-container { 
         grid-template-columns: repeat(3, 1fr); 
         gap: 10px; 
@@ -352,9 +352,5 @@ textarea.edit-input { min-height: 110px; resize: none; }
     .member-title-info h2 { font-size: 1.5rem; }
     .info-group { padding: 15px; border-radius: 20px; flex-direction: column; align-items: flex-start; gap: 8px; }
     
-    /* Tối ưu nút bấm trên Mobile */
     button { padding: 10px 20px; }
 }
-
-/* Fix lỗi z-index cho music player trên Safari */
-.music-player-box { transform: translateZ(0); }
