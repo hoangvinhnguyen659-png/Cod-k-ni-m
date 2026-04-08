@@ -122,14 +122,15 @@ button:active { transform: scale(0.95); }
 /* --- 5. GRID HỆ THỐNG --- */
 #member-container { 
     display: grid; 
-    /* Tối ưu: Thay vì fix cứng 3 cột, dùng auto-fill và minmax để tự co dãn vừa màn hình */
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+    /* Đã sửa: Ép cứng 3 cột để luôn hiện 3 thành viên/hàng */
+    grid-template-columns: repeat(3, 1fr); 
     gap: clamp(12px, 2.5vw, 25px); 
     padding: 10px;
 }
 
 .grid-moments { 
     display: grid; 
+    /* Giữ nguyên auto-fill cho khoảnh khắc */
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
     gap: 15px; 
 }
@@ -328,9 +329,9 @@ textarea.edit-input { min-height: 110px; resize: none; }
 
 /* --- 15. RESPONSIVE TINH CHỈNH ĐIỆN THOẠI --- */
 @media (max-width: 480px) {
-    /* Tối ưu: Dùng auto-fill và minmax 110px giúp có thể dàn 2 hoặc 3 cột tùy màn hình mà chữ vẫn đủ không gian */
+    /* Đã sửa: Ép cứng 3 cột ngay cả trên giao diện điện thoại */
     #member-container { 
-        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+        grid-template-columns: repeat(3, 1fr); 
         gap: 10px; 
         padding: 5px; 
     }
