@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cod kỉ niệm</title>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Kỷ Niệm Thanh Xuân - Lớp Chúng Mình</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,26 +20,86 @@
 <body>
 
     <div id="toast" class="toast">
-        <i class="fa-solid fa-circle-info"></i> Nội dung thông báo
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="toast-msg">Nội dung thông báo</span>
     </div>
 
     <div id="fullscreen-overlay" class="fullscreen-overlay" onclick="closeFullScreen()">
         <span class="close-fullscreen" onclick="closeFullScreen()">&times;</span>
+        
+        <div class="fullscreen-nav">
+            <i class="fas fa-chevron-left" onclick="event.stopPropagation(); changeMoment(-1)"></i>
+            <i class="fas fa-chevron-right" onclick="event.stopPropagation(); changeMoment(1)"></i>
+        </div>
+
         <img id="fullscreen-img" src="" alt="Xem ảnh" onclick="event.stopPropagation()">
     </div>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo"><i class="fa-solid fa-feather-pointed"></i> Thanh Xuân</a>
+            <ul class="nav-links">
+                <li><a href="#trang-chu"><i class="fa-solid fa-house"></i> <span>Trang chủ</span></a></li>
+                <li><a href="#thanh-vien"><i class="fa-solid fa-users"></i> <span>Thành viên</span></a></li>
+                <li><a href="#khoanh-khac"><i class="fa-solid fa-camera"></i> <span>Ảnh</span></a></li>
+                <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">
+                    <i class="fa-solid fa-music"></i> <span>Nhạc</span>
+                </a></li>
+            </ul>
+            <div class="nav-right">
+                <button class="btn-auth" id="auth-btn" onclick="toggleAuth()">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-content" id="trang-chu">
+        <h1>Thanh Xuân Của Chúng Ta</h1>
+        <p>"Những năm tháng rực rỡ dưới mái trường thân yêu"</p>
+    </header>
+
+    <main class="container">
+        <section id="thanh-vien">
+            <h2 class="section-title"><i class="fa-solid fa-users-viewfinder"></i> Thành Viên</h2>
+            <div id="member-container">
+                </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="btn-load-more-members" class="btn-load-more" onclick="loadAllMembers()">
+                    Xem tất cả thành viên <i class="fa-solid fa-angles-down"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="khoanh-khac" style="margin-top: 80px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                <h2 class="section-title" style="margin: 0;"><i class="fa-solid fa-camera-retro"></i> Khoảnh Khắc</h2>
+                <button id="add-moment-btn" class="btn-auth" onclick="uploadNewMoment()" style="display: none;">
+                    <i class="fa-solid fa-plus"></i> Đăng ảnh kỷ niệm
+                </button>
+            </div>
+            <div class="grid-moments" id="moment-container">
+                </div>
+        </section>
+    </main>
 
     <div id="login-mask" class="modal" onclick="closeModal(event, 'login-mask')">
         <div class="modal-box">
             <span class="close-btn" onclick="document.getElementById('login-mask').style.display='none'">&times;</span>
-            <div class="login-box">
+            <div class="login-box" style="padding: 20px 0;">
                 <h2><i class="fa-solid fa-lock"></i> Đăng nhập</h2>
-                <p style="font-size: 12px; color: #888; margin-bottom: 20px;">Tài khoản định dạng: ban[số]@lop.com</p>
+                <p style="font-size: 13px; color: #888; margin-bottom: 25px;">Tài khoản định dạng: ban[số]@lop.com</p>
                 
-                <input type="email" id="login-email" class="edit-input" placeholder="Tài khoản (VD: ban1@lop.com)">
-                <input type="password" id="login-pass" class="edit-input" placeholder="Mật khẩu">
+                <div style="text-align: left;">
+                    <label class="edit-label">Email tài khoản</label>
+                    <input type="email" id="login-email" class="edit-input" placeholder="Ví dụ: ban1@lop.com">
+                    
+                    <label class="edit-label">Mật khẩu</label>
+                    <input type="password" id="login-pass" class="edit-input" placeholder="Nhập mật khẩu">
+                </div>
                 
                 <button class="btn-action" onclick="handleLogin()">
-                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                    <i class="fa-solid fa-right-to-bracket"></i> Xác nhận đăng nhập
                 </button>
             </div>
         </div>
@@ -69,52 +130,6 @@
     </div>
     <audio id="main-audio"></audio>
 
-    <nav>
-        <div class="nav-container">
-            <a href="#" class="logo"><i class="fa-solid fa-feather-pointed"></i> Thanh Xuân</a>
-            <ul class="nav-links">
-                <li><a href="#trang-chu"><i class="fa-solid fa-house"></i> <span>Trang chủ</span></a></li>
-                <li><a href="#thanh-vien">Thành viên</a></li>
-                <li><a href="#khoanh-khac">Khoảnh khắc</a></li>
-                <li><a href="javascript:void(0)" onclick="document.getElementById('music-modal').style.display='flex'">
-                    <i class="fa-solid fa-music"></i> <span>Nhạc</span>
-                </a></li>
-            </ul>
-            <div class="nav-right">
-                <button class="btn-auth" id="auth-btn" onclick="toggleAuth()">
-                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <div class="hero-content" id="trang-chu">
-        <h1>Thanh Xuân Của Chúng Ta</h1>
-        <p>"Những năm tháng rực rỡ dưới mái trường thân yêu"</p>
-    </div>
-
-    <section id="thanh-vien" class="container">
-        <h2 class="section-title"><i class="fa-solid fa-users-viewfinder"></i> Thành Viên</h2>
-        <div id="member-container">
-            </div>
-        <div style="text-align: center; margin-top: 30px;">
-            <button id="btn-load-more-members" class="btn-load-more" onclick="loadAllMembers()">
-                Xem tất cả thành viên <i class="fa-solid fa-angles-down"></i>
-            </button>
-        </div>
-    </section>
-
-    <section id="khoanh-khac" class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 class="section-title" style="margin: 0;"><i class="fa-solid fa-camera-retro"></i> Khoảnh Khắc</h2>
-            <button id="add-moment-btn" class="btn-auth" onclick="uploadNewMoment()" style="display: none;">
-                <i class="fa-solid fa-plus"></i> Đăng ảnh kỷ niệm
-            </button>
-        </div>
-        <div class="grid-moments" id="moment-container">
-            </div>
-    </section>
-
     <div id="member-modal" class="modal" onclick="closeModal(event, 'member-modal')">
         <div class="modal-box">
             <span class="close-btn" onclick="document.getElementById('member-modal').style.display='none'">&times;</span>
@@ -129,7 +144,7 @@
 
                 <div class="member-title-info">
                     <h2 id="modal-member-name">Tên Thành Viên</h2>
-                    <span id="modal-member-nickname"></span>
+                    <span id="modal-member-nickname">Biệt danh</span>
                 </div>
 
                 <div class="info-group hobbies-group">
@@ -147,12 +162,12 @@
                 </div>
                 
                 <button id="btn-edit-profile" class="btn-action" style="display: none;" onclick="enableEditMode()">
-                    <i class="fa-solid fa-user-pen"></i> Chỉnh sửa hồ sơ
+                    <i class="fa-solid fa-user-pen"></i> Chỉnh sửa hồ sơ của tôi
                 </button>
             </div>
 
             <div id="edit-mode" style="display: none;">
-                <h3 style="text-align: center; margin-bottom: 20px;">Cập Nhật Hồ Sơ</h3>
+                <h3 style="text-align: center; margin-bottom: 20px; color: var(--primary-dark);">Cập Nhật Hồ Sơ</h3>
                 
                 <label class="edit-label">Họ và Tên:</label>
                 <input type="text" id="edit-name" placeholder="Tên thật của bạn" class="edit-input">
@@ -176,7 +191,7 @@
                     <button class="btn-secondary" style="flex: 1; margin: 0;" onclick="cancelEditMode()">Hủy</button>
                 </div>
 
-                <div style="text-align: center; margin-top: 15px;">
+                <div style="text-align: center; margin-top: 20px;">
                     <span style="font-size: 12px; color: #e74c3c; cursor: pointer; font-weight: bold;" onclick="removeCurrentAvatar()">
                         <i class="fa-solid fa-circle-xmark"></i> Gỡ ảnh đại diện hiện tại
                     </span>
@@ -189,12 +204,12 @@
         <div class="modal-box" style="max-width: 500px; padding: 15px;">
             <span class="close-btn" onclick="document.getElementById('moment-modal').style.display='none'">&times;</span>
             
-            <div class="zoom-img-container">
-                <img id="zoom-img" src="" alt="Khoảnh khắc">
+            <div class="zoom-img-container" style="position: relative;">
+                <img id="zoom-img" src="" alt="Khoảnh khắc" onclick="openFullScreenFromModal()">
                 
-                <div style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 10px; pointer-events: none;">
-                    <i class="fa-solid fa-circle-chevron-left" onclick="changeMoment(-1)" style="color: white; font-size: 2.5rem; cursor: pointer; pointer-events: auto; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
-                    <i class="fa-solid fa-circle-chevron-right" onclick="changeMoment(1)" style="color: white; font-size: 2.5rem; cursor: pointer; pointer-events: auto; text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
+                <div style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 5px; pointer-events: none;">
+                    <i class="fa-solid fa-circle-left" onclick="changeMoment(-1)" style="color: rgba(255,255,255,0.8); font-size: 2.2rem; cursor: pointer; pointer-events: auto;"></i>
+                    <i class="fa-solid fa-circle-right" onclick="changeMoment(1)" style="color: rgba(255,255,255,0.8); font-size: 2.2rem; cursor: pointer; pointer-events: auto;"></i>
                 </div>
             </div>
 
@@ -206,10 +221,10 @@
                 <span class="react-item" onclick="addReaction('angry')" title="Phẫn nộ">😡</span>
             </div>
             
-            <div id="zoom-reaction-stats" class="stats-bar">Chưa có tương tác nào</div>
+            <div id="zoom-reaction-stats" class="stats-bar">Đang tải tương tác...</div>
 
             <div style="text-align: center; margin-top: 15px;">
-                <button id="btn-delete-moment" class="btn-secondary" style="color: #e74c3c; display: none;" onclick="deleteMoment()">
+                <button id="btn-delete-moment" class="btn-danger" style="display: none; padding: 8px 20px; font-size: 0.9rem;" onclick="deleteMoment()">
                     <i class="fa-solid fa-trash-can"></i> Xóa ảnh này
                 </button>
             </div>
@@ -217,5 +232,25 @@
     </div>
 
     <script src="script.js"></script>
+
+    <script>
+        function closeModal(event, modalId) {
+            if (event.target.id === modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+        }
+        
+        function openFullScreenFromModal() {
+            const src = document.getElementById('zoom-img').src;
+            if (src) {
+                document.getElementById('fullscreen-img').src = src;
+                document.getElementById('fullscreen-overlay').style.display = 'flex';
+            }
+        }
+
+        function closeFullScreen() {
+            document.getElementById('fullscreen-overlay').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
