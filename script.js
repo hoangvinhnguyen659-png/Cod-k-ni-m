@@ -547,14 +547,14 @@ function closeModal(e, id) {
     }
 }
 
-// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM CHUẨN XÁC, SWIPE & KÉO RÊ)
+// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM CHUẨN XÁC, SWIPE & KÉO RÊ TRONG KHU VỰC ẢNH)
 function viewFullScreen(imgSrc, isMoment = false) {
     if (!imgSrc) return;
     isViewingMomentFullscreen = isMoment; 
     isZoomed = false; 
     currentScale = 1; 
-    translateX = 0; // Reset vị trí kéo
-    translateY = 0; // Reset vị trí kéo
+    translateX = 0; 
+    translateY = 0; 
 
     // KHOÁ CUỘN TRANG WEB BÊN DƯỚI
     document.body.style.overflow = 'hidden';
@@ -569,26 +569,23 @@ function viewFullScreen(imgSrc, isMoment = false) {
         img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
         img.style.transition = "transform 0.2s ease"; 
         
-        // Sự kiện click để zoom tại vị trí giữa
-        img.onclick = function(e) {
+        // Hỗ trợ nhấn đúp trên máy tính (PC)
+        img.ondblclick = function(e) {
             e.stopPropagation(); 
-            
-            if (currentScale > 1) { // Đang to -> Thu nhỏ
+            if (currentScale > 1) { // Đang to -> Thu nhỏ về nguyên bản
                 currentScale = 1; 
                 translateX = 0;
                 translateY = 0;
-                img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
-                img.style.cursor = "zoom-in";
                 isZoomed = false;
             } else { // Đang nhỏ -> Phóng to
-                currentScale = 2.5; // Zoom 2.5x
-                translateX = 0;
-                translateY = 0;
-                img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
-                img.style.cursor = "zoom-out";
+                currentScale = 2.5; 
                 isZoomed = true;
             }
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         };
+        
+        // Gỡ bỏ onclick (click đơn) cũ đi để tránh xung đột
+        img.onclick = null; 
     } else {
         console.warn("Chưa thêm HTML cho giao diện xem ảnh toàn màn hình");
     }
@@ -616,7 +613,7 @@ function setupSwipeEvents() {
     const fsOverlay = document.getElementById('fullscreen-overlay');
     if (fsOverlay) {
         fsOverlay.addEventListener('touchstart', e => {
-            if (e.touches.length === 1) { // Chỉ vuốt khi dùng 1 ngón
+            if (e.touches.length === 1) {
                 touchstartX = e.changedTouches[0].screenX;
             }
         }, {passive: true});
@@ -632,7 +629,7 @@ function setupSwipeEvents() {
 
 function handleSwipe() {
     if (!isViewingMomentFullscreen) return; 
-    if (isZoomed || currentScale > 1) return; // Không cho vuốt sang ảnh khác khi đang zoom
+    if (isZoomed || currentScale > 1) return; // Không vuốt khi đang zoom
     
     if (touchendX < touchstartX - 50) {
         changeMoment(1);
@@ -649,15 +646,15 @@ function updateFullscreenImage() {
     const img = document.getElementById('fullscreen-img');
     if (m && img) {
         img.src = getImgUrl(m.url);
-        currentScale = 1; // Reset zoom khi chuyển ảnh
-        translateX = 0; // Reset vị trí pan
+        currentScale = 1; 
+        translateX = 0; 
         translateY = 0;
         img.style.transform = `translate(0px, 0px) scale(${currentScale})`; 
         isZoomed = false;
     }
 }
 
-// HÀM XỬ LÝ PINCH-TO-ZOOM (2 ngón) VÀ PANNING (1 ngón kéo rê ảnh)
+// HÀM XỬ LÝ PINCH-TO-ZOOM, PANNING (GIỚI HẠN RÌA) VÀ DOUBLE-TAP ĐIỆN THOẠI
 function setupPinchZoom() {
     const img = document.getElementById('fullscreen-img');
     const overlay = document.getElementById('fullscreen-overlay');
@@ -666,10 +663,38 @@ function setupPinchZoom() {
     let isPanning = false;
     let lastTouchX = 0;
     let lastTouchY = 0;
+    let lastTapTime = 0; // Biến lưu thời gian để tính Double-tap
+
+    // Hàm phụ: Tính toán và giới hạn không cho kéo ra ngoài viền ảnh
+    function checkBounds() {
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const containerRatio = window.innerWidth / window.innerHeight;
+        let actualWidth, actualHeight;
+
+        if (imgRatio > containerRatio) {
+            actualWidth = window.innerWidth;
+            actualHeight = window.innerWidth / imgRatio;
+        } else {
+            actualHeight = window.innerHeight;
+            actualWidth = window.innerHeight * imgRatio;
+        }
+
+        const scaledWidth = actualWidth * currentScale;
+        const scaledHeight = actualHeight * currentScale;
+
+        // Tính khoảng cách tối đa có thể kéo ra từ trung tâm
+        const maxX = Math.max(0, (scaledWidth - window.innerWidth) / 2);
+        const maxY = Math.max(0, (scaledHeight - window.innerHeight) / 2);
+
+        // Chặn lại nếu kéo vượt quá giới hạn
+        if (translateX > maxX) translateX = maxX;
+        if (translateX < -maxX) translateX = -maxX;
+        if (translateY > maxY) translateY = maxY;
+        if (translateY < -maxY) translateY = -maxY;
+    }
 
     img.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
-            // Chế độ 2 ngón: Phóng to / Thu nhỏ
             e.preventDefault(); 
             initialDistance = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
@@ -680,8 +705,7 @@ function setupPinchZoom() {
             isPanning = false;
         } 
         else if (e.touches.length === 1 && currentScale > 1) {
-            // Chế độ 1 ngón: Di chuyển ảnh (chỉ khi đã zoom to)
-            e.preventDefault(); // Ngăn hành vi cuộn trang mặc định
+            e.preventDefault(); 
             isPanning = true;
             lastTouchX = e.touches[0].pageX;
             lastTouchY = e.touches[0].pageY;
@@ -691,7 +715,6 @@ function setupPinchZoom() {
 
     img.addEventListener('touchmove', (e) => {
         if (e.touches.length === 2) {
-            // Đang zoom 2 ngón
             e.preventDefault();
             const currentDistance = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
@@ -699,22 +722,22 @@ function setupPinchZoom() {
             );
             
             currentScale = initialScale * (currentDistance / initialDistance);
-            currentScale = Math.min(Math.max(1, currentScale), 5); // Giới hạn zoom từ 1x đến 5x
+            currentScale = Math.min(Math.max(1, currentScale), 5); 
             
+            checkBounds(); // Kéo liên tục vào khung nếu lỡ tay zoom nhỏ lại
             img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
             isZoomed = currentScale > 1; 
         } 
         else if (e.touches.length === 1 && isPanning) {
-            // Đang kéo ảnh đi nơi khác
             e.preventDefault();
             const deltaX = e.touches[0].pageX - lastTouchX;
             const deltaY = e.touches[0].pageY - lastTouchY;
 
-            // Tính toán vị trí mới
             translateX += deltaX;
             translateY += deltaY;
+            
+            checkBounds(); // Gọi hàm chặn viền để không bị kéo lọt ra ngoài
 
-            // Lưu lại vị trí ngón tay hiện tại
             lastTouchX = e.touches[0].pageX;
             lastTouchY = e.touches[0].pageY;
 
@@ -725,14 +748,40 @@ function setupPinchZoom() {
     img.addEventListener('touchend', (e) => {
         img.style.transition = "transform 0.2s ease"; 
         isPanning = false;
+
+        // XỬ LÝ NHẤN ĐÚP (DOUBLE-TAP) TRÊN ĐIỆN THOẠI
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTapTime;
         
-        // Nếu thu nhỏ về kích thước gốc hoặc nhỏ hơn, reset lại mọi thứ
+        // Nếu chạm 2 lần trong khoảng 300ms và thả tay ra -> Nhấn đúp
+        if (tapLength < 300 && tapLength > 0 && e.changedTouches.length === 1) {
+            e.preventDefault();
+            if (currentScale > 1) {
+                // Đang zoom -> Reset về nguyên bản
+                currentScale = 1;
+                translateX = 0;
+                translateY = 0;
+                isZoomed = false;
+            } else {
+                // Đang bình thường -> Phóng to 2.5x
+                currentScale = 2.5;
+                isZoomed = true;
+            }
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+        }
+        lastTapTime = currentTime;
+        
+        // Đảm bảo không bị lỗi giao diện nếu zoom < 1x
         if (currentScale <= 1) {
             currentScale = 1;
             translateX = 0;
             translateY = 0;
             isZoomed = false;
             img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
+        } else {
+            // Khi thả ngón tay ra, kiểm tra ranh giới một lần cuối
+            checkBounds();
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         }
     });
 }
