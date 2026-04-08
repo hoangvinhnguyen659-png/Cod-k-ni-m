@@ -539,7 +539,7 @@ function closeModal(e, id) {
     }
 }
 
-// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM & SWIPE)
+// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM CHUẨN XÁC & SWIPE)
 function viewFullScreen(imgSrc, isMoment = false) {
     if (!imgSrc) return;
     isViewingMomentFullscreen = isMoment; 
@@ -551,14 +551,40 @@ function viewFullScreen(imgSrc, isMoment = false) {
         img.src = imgSrc;
         overlay.style.display = 'flex';
         img.style.transform = "scale(1)";
+        img.style.transformOrigin = "center center"; // Đặt lại tâm mặc định khi mở ảnh mới
         img.style.transition = "transform 0.2s ease"; 
         
-        // Sự kiện click để zoom
+        // Sự kiện click để zoom tại vị trí click
         img.onclick = function(e) {
             e.stopPropagation(); // Ngăn sự kiện click làm đóng overlay
             isZoomed = !isZoomed;
-            img.style.transform = isZoomed ? "scale(2.5)" : "scale(1)";
-            img.style.cursor = isZoomed ? "zoom-out" : "zoom-in";
+            
+            if (isZoomed) {
+                // Lấy kích thước và vị trí của ảnh trên màn hình
+                const rect = img.getBoundingClientRect();
+                
+                // Tính tọa độ click chuột tương đối so với góc trên bên trái của ảnh
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Chuyển đổi tọa độ thành phần trăm (%)
+                const originX = (x / rect.width) * 100;
+                const originY = (y / rect.height) * 100;
+                
+                // Đặt tâm zoom (transform-origin) vào đúng vị trí click
+                img.style.transformOrigin = `${originX}% ${originY}%`;
+                img.style.transform = "scale(2.5)";
+                img.style.cursor = "zoom-out";
+            } else {
+                // Thu nhỏ lại bình thường
+                img.style.transform = "scale(1)";
+                img.style.cursor = "zoom-in";
+                
+                // Trả lại tâm zoom mặc định sau khi hiệu ứng thu nhỏ (0.2s) kết thúc
+                setTimeout(() => {
+                    if(!isZoomed) img.style.transformOrigin = "center center";
+                }, 200); 
+            }
         };
     } else {
         console.warn("Chưa thêm HTML cho giao diện xem ảnh toàn màn hình");
