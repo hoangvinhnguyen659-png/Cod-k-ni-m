@@ -28,10 +28,12 @@ let isZoomed = false;
 let touchstartX = 0;
 let touchendX = 0;
 
-// Biến cho tính năng Pinch-to-zoom (2 ngón tay)
+// Biến cho tính năng Pinch-to-zoom (2 ngón tay) và Panning (kéo rê ảnh)
 let currentScale = 1;
 let initialDistance = 0;
 let initialScale = 1;
+let translateX = 0; // Biến lưu vị trí kéo theo trục X
+let translateY = 0; // Biến lưu vị trí kéo theo trục Y
 
 const songs = [
     { id: 1, title: "Lời Pháo Hoa Rực Rỡ", class: "circle-coral", src: "FILE_ID_BÀI_1" },
@@ -85,7 +87,7 @@ function init() {
     loadPlaylist();
     setupSwipeEvents();
     setupLoginEnterKey();
-    setupPinchZoom(); // Kích hoạt zoom 2 ngón
+    setupPinchZoom(); // Kích hoạt zoom 2 ngón và kéo rê ảnh
 }
 
 // 4. HÀM TRỢ GIÚP HIỂN THỊ ẢNH & NHẠC QUA WORKER
@@ -545,46 +547,46 @@ function closeModal(e, id) {
     }
 }
 
-// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM CHUẨN XÁC, SWIPE & PINCH-TO-ZOOM)
+// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM CHUẨN XÁC, SWIPE & KÉO RÊ)
 function viewFullScreen(imgSrc, isMoment = false) {
     if (!imgSrc) return;
     isViewingMomentFullscreen = isMoment; 
     isZoomed = false; 
-    currentScale = 1; // Reset tỷ lệ zoom
+    currentScale = 1; 
+    translateX = 0; // Reset vị trí kéo
+    translateY = 0; // Reset vị trí kéo
+
+    // KHOÁ CUỘN TRANG WEB BÊN DƯỚI
+    document.body.style.overflow = 'hidden';
 
     const overlay = document.getElementById('fullscreen-overlay');
     const img = document.getElementById('fullscreen-img');
+    
     if (overlay && img) {
         img.src = imgSrc;
         overlay.style.display = 'flex';
-        img.style.transform = `scale(${currentScale})`;
         img.style.transformOrigin = "center center"; 
+        img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
         img.style.transition = "transform 0.2s ease"; 
         
-        // Sự kiện click để zoom tại vị trí click
+        // Sự kiện click để zoom tại vị trí giữa
         img.onclick = function(e) {
             e.stopPropagation(); 
-            isZoomed = !isZoomed;
             
-            if (isZoomed) {
-                currentScale = 2.5; // Zoom 2.5x
-                const rect = img.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const originX = (x / rect.width) * 100;
-                const originY = (y / rect.height) * 100;
-                
-                img.style.transformOrigin = `${originX}% ${originY}%`;
-                img.style.transform = `scale(${currentScale})`;
-                img.style.cursor = "zoom-out";
-            } else {
-                currentScale = 1; // Thu về 1x
-                img.style.transform = `scale(${currentScale})`;
+            if (currentScale > 1) { // Đang to -> Thu nhỏ
+                currentScale = 1; 
+                translateX = 0;
+                translateY = 0;
+                img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
                 img.style.cursor = "zoom-in";
-                
-                setTimeout(() => {
-                    if(!isZoomed) img.style.transformOrigin = "center center";
-                }, 200); 
+                isZoomed = false;
+            } else { // Đang nhỏ -> Phóng to
+                currentScale = 2.5; // Zoom 2.5x
+                translateX = 0;
+                translateY = 0;
+                img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
+                img.style.cursor = "zoom-out";
+                isZoomed = true;
             }
         };
     } else {
@@ -598,9 +600,15 @@ function closeFullScreen() {
     if (overlay && img) {
         overlay.style.display = 'none';
         img.src = '';
-        currentScale = 1; // Reset tỷ lệ zoom
-        img.style.transform = `scale(${currentScale})`;
+        currentScale = 1; 
+        translateX = 0;
+        translateY = 0;
+        img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
+        isZoomed = false;
     }
+    
+    // MỞ LẠI CUỘN TRANG WEB KHI ĐÓNG ẢNH
+    document.body.style.overflow = '';
 }
 
 // Lắng nghe sự kiện vuốt trên điện thoại
@@ -624,7 +632,7 @@ function setupSwipeEvents() {
 
 function handleSwipe() {
     if (!isViewingMomentFullscreen) return; 
-    if (isZoomed) return; // Không cho vuốt khi đang zoom
+    if (isZoomed || currentScale > 1) return; // Không cho vuốt sang ảnh khác khi đang zoom
     
     if (touchendX < touchstartX - 50) {
         changeMoment(1);
@@ -642,56 +650,89 @@ function updateFullscreenImage() {
     if (m && img) {
         img.src = getImgUrl(m.url);
         currentScale = 1; // Reset zoom khi chuyển ảnh
-        img.style.transform = `scale(${currentScale})`; 
+        translateX = 0; // Reset vị trí pan
+        translateY = 0;
+        img.style.transform = `translate(0px, 0px) scale(${currentScale})`; 
         isZoomed = false;
     }
 }
 
-// HÀM XỬ LÝ PINCH-TO-ZOOM (Dùng 2 ngón tay thu phóng trên điện thoại)
+// HÀM XỬ LÝ PINCH-TO-ZOOM (2 ngón) VÀ PANNING (1 ngón kéo rê ảnh)
 function setupPinchZoom() {
     const img = document.getElementById('fullscreen-img');
     const overlay = document.getElementById('fullscreen-overlay');
     if (!img || !overlay) return;
 
+    let isPanning = false;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+
     img.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
+            // Chế độ 2 ngón: Phóng to / Thu nhỏ
             e.preventDefault(); 
-            
             initialDistance = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
                 e.touches[0].pageY - e.touches[1].pageY
             );
             initialScale = currentScale;
             img.style.transition = 'none'; 
+            isPanning = false;
+        } 
+        else if (e.touches.length === 1 && currentScale > 1) {
+            // Chế độ 1 ngón: Di chuyển ảnh (chỉ khi đã zoom to)
+            e.preventDefault(); // Ngăn hành vi cuộn trang mặc định
+            isPanning = true;
+            lastTouchX = e.touches[0].pageX;
+            lastTouchY = e.touches[0].pageY;
+            img.style.transition = 'none'; 
         }
     }, { passive: false });
 
     img.addEventListener('touchmove', (e) => {
         if (e.touches.length === 2) {
+            // Đang zoom 2 ngón
             e.preventDefault();
-            
             const currentDistance = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
                 e.touches[0].pageY - e.touches[1].pageY
             );
             
             currentScale = initialScale * (currentDistance / initialDistance);
-            currentScale = Math.min(Math.max(1, currentScale), 5); // Giới hạn từ 1x đến 5x
+            currentScale = Math.min(Math.max(1, currentScale), 5); // Giới hạn zoom từ 1x đến 5x
             
-            img.style.transform = `scale(${currentScale})`;
-            img.style.transformOrigin = "center center"; 
-            
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
             isZoomed = currentScale > 1; 
+        } 
+        else if (e.touches.length === 1 && isPanning) {
+            // Đang kéo ảnh đi nơi khác
+            e.preventDefault();
+            const deltaX = e.touches[0].pageX - lastTouchX;
+            const deltaY = e.touches[0].pageY - lastTouchY;
+
+            // Tính toán vị trí mới
+            translateX += deltaX;
+            translateY += deltaY;
+
+            // Lưu lại vị trí ngón tay hiện tại
+            lastTouchX = e.touches[0].pageX;
+            lastTouchY = e.touches[0].pageY;
+
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         }
     }, { passive: false });
 
     img.addEventListener('touchend', (e) => {
         img.style.transition = "transform 0.2s ease"; 
+        isPanning = false;
         
+        // Nếu thu nhỏ về kích thước gốc hoặc nhỏ hơn, reset lại mọi thứ
         if (currentScale <= 1) {
             currentScale = 1;
+            translateX = 0;
+            translateY = 0;
             isZoomed = false;
-            img.style.transform = `scale(${currentScale})`;
+            img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
         }
     });
 }
