@@ -663,7 +663,7 @@ function setupPinchZoom() {
     let lastTouchX = 0;
     let lastTouchY = 0;
     let lastTapTime = 0;
-    let pinchCenter = { x: 0, y: 0 }; // Điểm trọng tâm giữa 2 ngón tay
+    let pinchCenter = { x: 0, y: 0 }; 
     let lastScale = 1;
 
     // Hàm phụ: Tính toán và giới hạn không cho kéo ra ngoài viền ảnh
@@ -683,11 +683,9 @@ function setupPinchZoom() {
         const scaledWidth = actualWidth * currentScale;
         const scaledHeight = actualHeight * currentScale;
 
-        // Tính khoảng cách tối đa có thể kéo ra từ trung tâm
         const maxX = Math.max(0, (scaledWidth - window.innerWidth) / 2);
         const maxY = Math.max(0, (scaledHeight - window.innerHeight) / 2);
 
-        // Chặn lại nếu kéo vượt quá giới hạn
         if (translateX > maxX) translateX = maxX;
         if (translateX < -maxX) translateX = -maxX;
         if (translateY > maxY) translateY = maxY;
@@ -695,102 +693,91 @@ function setupPinchZoom() {
     }
 
     img.addEventListener('touchstart', (e) => {
-        img.style.transition = 'none'; // Tắt hiệu ứng mượt để ngón tay di chuyển tức thời
+        img.style.transition = 'none'; 
         
         if (e.touches.length === 2) {
             e.preventDefault();
             initialDistance = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX,
-                e.touches[0].pageY - e.touches[1].pageY
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
             );
             initialScale = currentScale;
             lastScale = currentScale;
 
-            // Tính điểm trung tâm giữa 2 ngón tay
             pinchCenter = {
-                x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
-                y: (e.touches[0].pageY + e.touches[1].pageY) / 2
+                x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                y: (e.touches[0].clientY + e.touches[1].clientY) / 2
             };
         } 
         else if (e.touches.length === 1) {
             e.preventDefault();
-            lastTouchX = e.touches[0].pageX;
-            lastTouchY = e.touches[0].pageY;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         }
     }, { passive: false });
 
     img.addEventListener('touchmove', (e) => {
-        e.preventDefault(); // Ngăn trình duyệt cuộn trang hoặc reload
+        e.preventDefault(); 
 
         if (e.touches.length === 2) {
-            // 1. TÍNH TOÁN ĐỘ ZOOM MỚI
             const currentDistance = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX,
-                e.touches[0].pageY - e.touches[1].pageY
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
             );
             
             const newCenter = {
-                x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
-                y: (e.touches[0].pageY + e.touches[1].pageY) / 2
+                x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                y: (e.touches[0].clientY + e.touches[1].clientY) / 2
             };
 
             let newScale = initialScale * (currentDistance / initialDistance);
-            newScale = Math.min(Math.max(1, newScale), 5); // Giới hạn zoom từ 1x đến 5x
+            newScale = Math.min(Math.max(1, newScale), 5); 
 
-            // 2. TÍNH TOÁN DỊCH CHUYỂN TÂM ZOOM (FOCAL POINT)
             const scaleRatio = newScale / lastScale;
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
 
-            // Bù trừ tọa độ để ảnh zoom đúng vào vị trí 2 ngón tay
             const offsetX = pinchCenter.x - centerX - translateX;
             const offsetY = pinchCenter.y - centerY - translateY;
 
             translateX -= offsetX * (scaleRatio - 1);
             translateY -= offsetY * (scaleRatio - 1);
 
-            // Cộng thêm khoảng di chuyển nếu người dùng vừa zoom vừa lết 2 ngón tay
             translateX += (newCenter.x - pinchCenter.x);
             translateY += (newCenter.y - pinchCenter.y);
 
-            // Cập nhật state
             currentScale = newScale;
             lastScale = newScale;
             pinchCenter = newCenter;
             isZoomed = currentScale > 1;
 
-            checkBounds(); 
             img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         } 
         else if (e.touches.length === 1 && currentScale > 1) {
-            // KÉO RÊ ẢNH (PANNING) BẰNG 1 NGÓN TAY
-            const deltaX = e.touches[0].pageX - lastTouchX;
-            const deltaY = e.touches[0].pageY - lastTouchY;
+            const deltaX = e.touches[0].clientX - lastTouchX;
+            const deltaY = e.touches[0].clientY - lastTouchY;
 
             translateX += deltaX;
             translateY += deltaY;
             
             checkBounds(); 
 
-            lastTouchX = e.touches[0].pageX;
-            lastTouchY = e.touches[0].pageY;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
 
             img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         }
     }, { passive: false });
 
     img.addEventListener('touchend', (e) => {
-        // Cực kỳ quan trọng: Nếu nhấc 1 ngón tay lên, phải cập nhật lại tọa độ cho ngón tay còn lại đang giữ trên màn hình để ảnh không bị giật
         if (e.touches.length === 1) {
-            lastTouchX = e.touches[0].pageX;
-            lastTouchY = e.touches[0].pageY;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         }
 
-        // Khi nhấc hết ngón tay ra khỏi màn hình
         if (e.touches.length === 0) {
-            img.style.transition = "transform 0.2s ease"; // Bật lại hiệu ứng mượt khi thả tay
+            img.style.transition = "transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"; 
 
-            // XỬ LÝ NHẤN ĐÚP (DOUBLE-TAP)
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
             
@@ -804,21 +791,19 @@ function setupPinchZoom() {
                     currentScale = 2.5;
                     isZoomed = true;
                 }
-                img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
-            }
-            lastTapTime = currentTime;
-            
-            // Đưa ảnh về 1x nếu người dùng zoom nhỏ hơn mức bình thường
-            if (currentScale <= 1) {
-                currentScale = 1;
-                translateX = 0;
-                translateY = 0;
-                isZoomed = false;
-                img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
             } else {
-                checkBounds();
-                img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+                if (currentScale <= 1) {
+                    currentScale = 1;
+                    translateX = 0;
+                    translateY = 0;
+                    isZoomed = false;
+                } else {
+                    checkBounds();
+                }
             }
+            
+            lastTapTime = currentTime;
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         }
     });
 }
