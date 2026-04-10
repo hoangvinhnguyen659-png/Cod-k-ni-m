@@ -641,20 +641,7 @@ function handleSwipe() {
     }
 }
 
-function updateFullscreenImage() {
-    const m = allMoments[currentMomentIdx];
-    const img = document.getElementById('fullscreen-img');
-    if (m && img) {
-        img.src = getImgUrl(m.url);
-        currentScale = 1; 
-        translateX = 0; 
-        translateY = 0;
-        img.style.transform = `translate(0px, 0px) scale(${currentScale})`; 
-        isZoomed = false;
-    }
-}
-
-// HÀM XỬ LÝ PINCH-TO-ZOOM, PANNING VÀ DOUBLE-TAP CHUẨN NHƯ APP NATIVE
+// HÀM XỬ LÝ PINCH-TO-ZOOM, PANNING VÀ DOUBLE-TAP CHUẨN NHƯ APP NATIVE (ĐÃ TỐI ƯU HIỆU NĂNG)
 function setupPinchZoom() {
     const img = document.getElementById('fullscreen-img');
     const overlay = document.getElementById('fullscreen-overlay');
@@ -666,8 +653,15 @@ function setupPinchZoom() {
     let pinchCenter = { x: 0, y: 0 }; 
     let lastScale = 1;
 
-    // Hàm phụ: Tính toán và giới hạn không cho kéo ra ngoài viền ảnh
-    function checkBounds() {
+    // --- CÁC BIẾN TỐI ƯU HIỆU NĂNG ---
+    let ticking = false;       // Cờ kiểm soát requestAnimationFrame
+    let cachedBounds = {};     // Lưu trữ kích thước màn hình & ảnh
+
+    // Ép trình duyệt dùng GPU để xử lý transform giúp hình ảnh mượt hơn
+    img.style.willChange = 'transform';
+
+    // Tính toán kích thước 1 lần duy nhất thay vì tính liên tục khi kéo
+    function cacheDimensions() {
         const imgRatio = img.naturalWidth / img.naturalHeight;
         const containerRatio = window.innerWidth / window.innerHeight;
         let actualWidth, actualHeight;
@@ -680,11 +674,23 @@ function setupPinchZoom() {
             actualWidth = window.innerHeight * imgRatio;
         }
 
-        const scaledWidth = actualWidth * currentScale;
-        const scaledHeight = actualHeight * currentScale;
+        cachedBounds = {
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight,
+            actualWidth: actualWidth,
+            actualHeight: actualHeight
+        };
+    }
 
-        const maxX = Math.max(0, (scaledWidth - window.innerWidth) / 2);
-        const maxY = Math.max(0, (scaledHeight - window.innerHeight) / 2);
+    // Kiểm tra giới hạn dựa trên dữ liệu đã cache
+    function checkBounds() {
+        if (!cachedBounds.actualWidth) return;
+
+        const scaledWidth = cachedBounds.actualWidth * currentScale;
+        const scaledHeight = cachedBounds.actualHeight * currentScale;
+
+        const maxX = Math.max(0, (scaledWidth - cachedBounds.windowWidth) / 2);
+        const maxY = Math.max(0, (scaledHeight - cachedBounds.windowHeight) / 2);
 
         if (translateX > maxX) translateX = maxX;
         if (translateX < -maxX) translateX = -maxX;
@@ -692,9 +698,23 @@ function setupPinchZoom() {
         if (translateY < -maxY) translateY = -maxY;
     }
 
+    // Hàm cập nhật giao diện mượt mà qua requestAnimationFrame
+    function applyTransform() {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+
     img.addEventListener('touchstart', (e) => {
         img.style.transition = 'none'; 
         
+        // Cache kích thước ngay lúc bắt đầu chạm để dùng cho touchmove
+        cacheDimensions();
+
         if (e.touches.length === 2) {
             e.preventDefault();
             initialDistance = Math.hypot(
@@ -734,8 +754,8 @@ function setupPinchZoom() {
             newScale = Math.min(Math.max(1, newScale), 5); 
 
             const scaleRatio = newScale / lastScale;
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
+            const centerX = cachedBounds.windowWidth / 2;
+            const centerY = cachedBounds.windowHeight / 2;
 
             const offsetX = pinchCenter.x - centerX - translateX;
             const offsetY = pinchCenter.y - centerY - translateY;
@@ -751,7 +771,7 @@ function setupPinchZoom() {
             pinchCenter = newCenter;
             isZoomed = currentScale > 1;
 
-            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+            applyTransform(); // Cập nhật mượt mà
         } 
         else if (e.touches.length === 1 && currentScale > 1) {
             const deltaX = e.touches[0].clientX - lastTouchX;
@@ -765,7 +785,7 @@ function setupPinchZoom() {
             lastTouchX = e.touches[0].clientX;
             lastTouchY = e.touches[0].clientY;
 
-            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+            applyTransform(); // Cập nhật mượt mà
         }
     }, { passive: false });
 
@@ -803,6 +823,9 @@ function setupPinchZoom() {
             }
             
             lastTapTime = currentTime;
+            
+            // Ở sự kiện touchend (thả tay), cập nhật style trực tiếp 
+            // để CSS transition thực thi được ngay lập tức
             img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         }
     });
