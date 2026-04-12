@@ -32,8 +32,8 @@ let touchendX = 0;
 let currentScale = 1;
 let initialDistance = 0;
 let initialScale = 1;
-let translateX = 0; // Biến lưu vị trí kéo theo trục X
-let translateY = 0; // Biến lưu vị trí kéo theo trục Y
+let translateX = 0;
+let translateY = 0;
 
 const songs = [
     { id: 1, title: "Lời Pháo Hoa Rực Rỡ", class: "circle-coral", src: "FILE_ID_BÀI_1" },
@@ -45,6 +45,7 @@ const audio = document.getElementById('main-audio');
 
 // 3. KHỞI TẠO (ĐỒNG BỘ DỮ LIỆU)
 function init() {
+    // Tải dữ liệu thành viên
     database.ref('users').on('value', snap => {
         let tempMembers = [];
         for (let i = 1; i <= 42; i++) {
@@ -65,6 +66,7 @@ function init() {
         if (currentEditingId) updateModalUI(currentEditingId);
     });
 
+    // Tải dữ liệu khoảnh khắc
     database.ref('moments').on('value', snap => {
         allMoments = [];
         if (snap.exists()) {
@@ -74,26 +76,28 @@ function init() {
             }
         }
         renderMoments();
-        if (document.getElementById('moment-modal').style.display === 'flex') {
+        const modal = document.getElementById('moment-modal');
+        if (modal && modal.style.display === 'flex') {
             const m = allMoments[currentMomentIdx];
             if(m) updateZoomStats(m.reactions || {}, m);
         }
     });
 
     if (loggedInUserId) {
-        document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Đăng xuất';
+        const authBtn = document.getElementById('auth-btn');
+        if (authBtn) authBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Đăng xuất';
     }
     updateUploadButton();
     loadPlaylist();
     setupSwipeEvents();
     setupLoginEnterKey();
-    setupPinchZoom(); // Kích hoạt zoom 2 ngón và kéo rê ảnh
+    setupPinchZoom();
 }
 
-// 4. HÀM TRỢ GIÚP HIỂN THỊ ẢNH & NHẠC QUA WORKER
+// 4. HÀM TRỢ GIÚP HIỂN THỊ ẢNH
 function getImgUrl(path) {
     if (!path) return '';
-    if (path.startsWith('http')) return path;
+    if (path.startsWith('http') || path.startsWith('data:image')) return path;
     const cleanWorker = WORKER_URL.replace(/\/$/, ""); 
     return `${cleanWorker}?file_id=${path}`;
 }
@@ -107,7 +111,7 @@ function renderMembers() {
     for (let i = 0; i < visibleMembersCount && i < allMembers.length; i++) {
         const m = allMembers[i];
         let avatarSrc = getImgUrl(m.avatar);
-        let avatarTag = m.avatar ? `<img src="${avatarSrc}" loading="lazy">` : `<div class="placeholder-avatar"><i class="fa-solid fa-user"></i></div>`;
+        let avatarTag = m.avatar ? `<img src="${avatarSrc}" loading="lazy" alt="${m.name}">` : `<div class="placeholder-avatar"><i class="fa-solid fa-user"></i></div>`;
         htmlContent += `
             <div class="member-card" onclick="openMemberModal(${m.id})">
                 ${avatarTag}
@@ -120,7 +124,8 @@ function renderMembers() {
 function loadAllMembers() { 
     visibleMembersCount = 42; 
     renderMembers(); 
-    document.getElementById('btn-load-more-members').style.display = 'none';
+    const btn = document.getElementById('btn-load-more-members');
+    if (btn) btn.style.display = 'none';
 }
 
 // 6. CHI TIẾT THÀNH VIÊN & LƯU DỮ LIỆU
@@ -128,7 +133,8 @@ function openMemberModal(id) {
     currentEditingId = id;
     updateModalUI(id);
     cancelEditMode();
-    document.getElementById('member-modal').style.display = 'flex';
+    const modal = document.getElementById('member-modal');
+    if (modal) modal.style.display = 'flex';
 }
 
 function updateModalUI(id) {
@@ -138,7 +144,7 @@ function updateModalUI(id) {
     document.getElementById('modal-member-name').innerText = m.name;
     document.getElementById('modal-member-nickname').innerText = m.nickname ? `@${m.nickname}` : '';
     document.getElementById('modal-member-hobbies').innerHTML = `<i class="fa-solid fa-heart" style="color:#ff7675"></i> ${m.hobbies || 'Chưa cập nhật'}`;
-    document.getElementById('modal-member-message').innerText = m.message;
+    document.getElementById('modal-member-message').innerText = m.message || '';
     
     const img = document.getElementById('modal-member-img');
     const placeholder = document.getElementById('modal-placeholder-avatar');
@@ -149,7 +155,7 @@ function updateModalUI(id) {
         placeholder.style.display = 'none';
         
         img.style.cursor = 'zoom-in'; 
-        img.onclick = () => viewFullScreen(getImgUrl(m.avatar), false); // Avatar truyền false
+        img.onclick = () => viewFullScreen(getImgUrl(m.avatar), false);
     } else {
         img.style.display = 'none'; 
         placeholder.innerHTML = `<i class="fa-solid fa-user" style="font-size: 3rem; color: #a4b0be;"></i>`; 
@@ -157,21 +163,25 @@ function updateModalUI(id) {
     }
 
     const editBtn = document.getElementById('btn-edit-profile');
-    if (loggedInUserId !== null && loggedInUserId === id) {
-        editBtn.style.display = 'block';
-        editBtn.innerHTML = `<i class="fa-solid fa-user-pen"></i> Chỉnh sửa hồ sơ`;
-    } else {
-        editBtn.style.display = 'none';
+    if (editBtn) {
+        if (loggedInUserId !== null && loggedInUserId === id) {
+            editBtn.style.display = 'block';
+            editBtn.innerHTML = `<i class="fa-solid fa-user-pen"></i> Chỉnh sửa hồ sơ`;
+        } else {
+            editBtn.style.display = 'none';
+        }
     }
 }
 
 function enableEditMode() {
     const m = allMembers.find(x => x.id === currentEditingId);
+    if (!m) return;
+
     document.getElementById('edit-name').value = m.name.includes("Thành viên") ? "" : m.name;
     document.getElementById('edit-nickname').value = m.nickname || "";
     document.getElementById('edit-avatar').value = (m.avatar && !m.avatar.includes("AgA")) ? m.avatar : "";
-    document.getElementById('edit-hobbies').value = m.hobbies;
-    document.getElementById('edit-message').value = m.message;
+    document.getElementById('edit-hobbies').value = m.hobbies || "";
+    document.getElementById('edit-message').value = m.message || "";
     
     const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
     if (saveBtn) saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`;
@@ -317,8 +327,10 @@ async function uploadPhotoToTelegram(file) {
 async function saveProfile() {
     const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
     let finalAvatar = document.getElementById('edit-avatar').value.trim();
-    saveBtn.innerText = "Đang lưu...";
-    saveBtn.disabled = true;
+    if(saveBtn) {
+        saveBtn.innerText = "Đang lưu...";
+        saveBtn.disabled = true;
+    }
 
     const data = {
         name: document.getElementById('edit-name').value.trim() || `Thành viên ${currentEditingId}`,
@@ -330,18 +342,22 @@ async function saveProfile() {
     
     database.ref('users/' + currentEditingId).set(data).then(() => {
         showToast("Đã cập nhật hồ sơ!");
-        saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`;
-        saveBtn.disabled = false;
+        if(saveBtn) {
+            saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu`;
+            saveBtn.disabled = false;
+        }
         cancelEditMode();
     }).catch(err => {
         showToast("Lỗi kết nối Firebase!");
-        saveBtn.disabled = false;
+        if(saveBtn) saveBtn.disabled = false;
     });
 }
 
 function cancelEditMode() {
-    document.getElementById('view-mode').style.display = 'block';
-    document.getElementById('edit-mode').style.display = 'none';
+    const viewMode = document.getElementById('view-mode');
+    const editMode = document.getElementById('edit-mode');
+    if(viewMode) viewMode.style.display = 'block';
+    if(editMode) editMode.style.display = 'none';
 }
 
 // 7. KHOẢNH KHẮC & TƯƠNG TÁC
@@ -362,9 +378,11 @@ function openMoment(idx) {
     const m = allMoments[idx];
     
     const zoomImg = document.getElementById('zoom-img');
-    zoomImg.src = getImgUrl(m.url);
-    zoomImg.style.cursor = 'zoom-in';
-    zoomImg.onclick = () => viewFullScreen(getImgUrl(m.url), true); // Kỷ niệm truyền true
+    if(zoomImg) {
+        zoomImg.src = getImgUrl(m.url);
+        zoomImg.style.cursor = 'zoom-in';
+        zoomImg.onclick = () => viewFullScreen(getImgUrl(m.url), true);
+    }
 
     updateZoomStats(m.reactions || {}, m);
     document.getElementById('moment-modal').style.display = 'flex';
@@ -375,8 +393,8 @@ function changeMoment(step) {
     if (currentMomentIdx < 0) currentMomentIdx = allMoments.length - 1;
     if (currentMomentIdx >= allMoments.length) currentMomentIdx = 0;
     
-    // Nếu đang xem trong modal
-    if(document.getElementById('moment-modal').style.display === 'flex') {
+    const modal = document.getElementById('moment-modal');
+    if(modal && modal.style.display === 'flex') {
         openMoment(currentMomentIdx);
     }
 }
@@ -393,7 +411,8 @@ function updateZoomStats(reacts, momentObj) {
     for (let key in icons) {
         if (reacts[key]) html += `<span style="margin: 0 8px;">${icons[key]} ${reacts[key]}</span> `;
     }
-    document.getElementById('zoom-reaction-stats').innerHTML = html || 'Chưa có tương tác nào';
+    const statsElem = document.getElementById('zoom-reaction-stats');
+    if(statsElem) statsElem.innerHTML = html || 'Chưa có tương tác nào';
     
     const delBtn = document.getElementById('btn-delete-moment');
     if (delBtn) {
@@ -413,7 +432,6 @@ function deleteMoment() {
     }
 }
 
-// TẢI NHIỀU ẢNH CÙNG LÚC + KẾT HỢP NÉN ẢNH VÀ XỬ LÝ SONG SONG
 async function uploadNewMoment() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -469,19 +487,26 @@ function handleLogin() {
         document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Đăng xuất';
         updateUploadButton();
         const user = allMembers.find(m => m.id === loggedInUserId);
-        showToast(`Chào ${user.nickname || user.name}!`);
-    } else { showToast("Thông tin không đúng!"); }
+        if(user) showToast(`Chào ${user.nickname || user.name}!`);
+    } else { 
+        showToast("Thông tin không đúng!"); 
+    }
 }
 
 function toggleAuth() {
     if (loggedInUserId) {
         loggedInUserId = null;
         localStorage.removeItem('myApp_userId');
-        document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
+        const authBtn = document.getElementById('auth-btn');
+        if(authBtn) authBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
         updateUploadButton();
         showToast("Đã đăng xuất.");
-        document.getElementById('member-modal').style.display = 'none';
-    } else { document.getElementById('login-mask').style.display = 'flex'; }
+        const modal = document.getElementById('member-modal');
+        if(modal) modal.style.display = 'none';
+    } else { 
+        const loginMask = document.getElementById('login-mask');
+        if(loginMask) loginMask.style.display = 'flex'; 
+    }
 }
 
 function updateUploadButton() {
@@ -492,7 +517,6 @@ function updateUploadButton() {
     }
 }
 
-// Lắng nghe sự kiện Enter khi đăng nhập
 function setupLoginEnterKey() {
     const emailInput = document.getElementById('login-email');
     const passInput = document.getElementById('login-pass');
@@ -525,8 +549,10 @@ function playSong(idx, autoPlay = true) {
         npIcon.className = `track-circle ${s.class}`; 
         npIcon.innerHTML = `<i class="fa-solid fa-compact-disc fa-spin"></i>`; 
     }
-    document.getElementById('np-title').innerText = "Đang phát: " + s.title;
-    if(autoPlay && s.src) {
+    const npTitle = document.getElementById('np-title');
+    if(npTitle) npTitle.innerText = "Đang phát: " + s.title;
+    
+    if(autoPlay && s.src && audio) {
         audio.src = getImgUrl(s.src);
         audio.play().catch(e => console.log("Cần thao tác để phát nhạc"));
     }
@@ -535,6 +561,7 @@ function playSong(idx, autoPlay = true) {
 // 10. TIỆN ÍCH
 function showToast(msg) {
     const t = document.getElementById("toast");
+    if(!t) return;
     t.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${msg}`; 
     t.className = "toast show";
     setTimeout(() => t.className = "toast", 3000);
@@ -547,7 +574,7 @@ function closeModal(e, id) {
     }
 }
 
-// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH (CÓ ZOOM CHUẨN XÁC, SWIPE & KÉO RÊ TRONG KHU VỰC ẢNH)
+// 11. TÍNH NĂNG XEM ẢNH TOÀN MÀN HÌNH
 function viewFullScreen(imgSrc, isMoment = false) {
     if (!imgSrc) return;
     isViewingMomentFullscreen = isMoment; 
@@ -556,7 +583,6 @@ function viewFullScreen(imgSrc, isMoment = false) {
     translateX = 0; 
     translateY = 0; 
 
-    // KHOÁ CUỘN TRANG WEB BÊN DƯỚI
     document.body.style.overflow = 'hidden';
 
     const overlay = document.getElementById('fullscreen-overlay');
@@ -569,7 +595,6 @@ function viewFullScreen(imgSrc, isMoment = false) {
         img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
         img.style.transition = "transform 0.2s ease"; 
         
-        // Hỗ trợ nhấn đúp trên máy tính (PC) có zoom tại điểm chuột
         img.ondblclick = function(e) {
             e.stopPropagation(); 
             if (currentScale > 1) { 
@@ -581,7 +606,6 @@ function viewFullScreen(imgSrc, isMoment = false) {
                 currentScale = 2.5; 
                 isZoomed = true;
                 
-                // Tính toán điểm chuột
                 const centerX = window.innerWidth / 2;
                 const centerY = window.innerHeight / 2;
                 const offsetX = e.clientX - centerX;
@@ -590,7 +614,6 @@ function viewFullScreen(imgSrc, isMoment = false) {
                 translateX = -offsetX * (currentScale - 1);
                 translateY = -offsetY * (currentScale - 1);
 
-                // Check giới hạn ngay lập tức
                 const natWidth = img.naturalWidth || img.clientWidth || 1;
                 const natHeight = img.naturalHeight || img.clientHeight || 1;
                 const imgRatio = natWidth / natHeight;
@@ -617,11 +640,7 @@ function viewFullScreen(imgSrc, isMoment = false) {
             }
             img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         };
-        
-        // Gỡ bỏ onclick (click đơn) cũ đi để tránh xung đột
         img.onclick = null; 
-    } else {
-        console.warn("Chưa thêm HTML cho giao diện xem ảnh toàn màn hình");
     }
 }
 
@@ -637,16 +656,14 @@ function closeFullScreen() {
         img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
         isZoomed = false;
     }
-    
-    // MỞ LẠI CUỘN TRANG WEB KHI ĐÓNG ẢNH
     document.body.style.overflow = '';
 }
 
-// Lắng nghe sự kiện vuốt trên điện thoại
 function setupSwipeEvents() {
     const fsOverlay = document.getElementById('fullscreen-overlay');
     if (fsOverlay) {
         fsOverlay.addEventListener('touchstart', e => {
+            // Chỉ bắt vuốt ngoài rìa hoặc khi không chạm vào ảnh
             if (e.touches.length === 1) {
                 touchstartX = e.changedTouches[0].screenX;
             }
@@ -661,11 +678,9 @@ function setupSwipeEvents() {
     }
 }
 
-// CẬP NHẬT: XỬ LÝ VUỐT CHUYỂN ẢNH THÔNG MINH NGAY CẢ KHI ĐANG ZOOM
 function handleSwipe() {
     if (!isViewingMomentFullscreen) return; 
     
-    // TRƯỜNG HỢP 1: KHI ẢNH KHÔNG ZOOM -> Vuốt chuyển ảnh bình thường
     if (!isZoomed || currentScale <= 1) {
         if (touchendX < touchstartX - 50) {
             changeMoment(1);
@@ -678,7 +693,6 @@ function handleSwipe() {
         return;
     }
 
-    // TRƯỜNG HỢP 2: KHI ẢNH ĐANG ZOOM -> Chỉ chuyển ảnh khi đã kéo sát rìa ảnh
     const img = document.getElementById('fullscreen-img');
     const natWidth = img.naturalWidth || img.clientWidth || 1;
     const natHeight = img.naturalHeight || img.clientHeight || 1;
@@ -692,36 +706,29 @@ function handleSwipe() {
         actualWidth = window.innerHeight * imgRatio;
     }
 
-    // Tính toán giới hạn (viền) của ảnh khớp với logic trong hàm setupPinchZoom()
     const scaledWidth = actualWidth * currentScale;
     const maxX = Math.max(0, (scaledWidth - window.innerWidth) / 2);
 
-    // Kiểm tra xem ảnh đã được kéo chạm lề chưa (cho phép sai số 5px để vuốt nhạy hơn)
-    const atRightEdge = translateX <= -maxX + 5; // Đã kéo sang trái tối đa (đang xem lề phải ảnh)
-    const atLeftEdge = translateX >= maxX - 5;   // Đã kéo sang phải tối đa (đang xem lề trái ảnh)
+    const atRightEdge = translateX <= -maxX + 5; 
+    const atLeftEdge = translateX >= maxX - 5;   
 
-    // Nếu vuốt sang TRÁI (touchendX < touchstartX) VÀ đang ở lề PHẢI của ảnh -> Chuyển ảnh NEXT
     if (atRightEdge && touchendX < touchstartX - 50) {
         changeMoment(1);
         updateFullscreenImage();
     }
-    // Nếu vuốt sang PHẢI (touchendX > touchstartX) VÀ đang ở lề TRÁI của ảnh -> Chuyển ảnh PREV
     else if (atLeftEdge && touchendX > touchstartX + 50) {
         changeMoment(-1);
         updateFullscreenImage();
     }
 }
 
-// HÀM BỔ SUNG: Load ảnh mới và reset trạng thái Zoom khi chuyển ảnh
 function updateFullscreenImage() {
     const m = allMoments[currentMomentIdx];
     if (m) {
-        // Tái sử dụng viewFullScreen để load ảnh mới, hàm này đã có sẵn logic reset biến currentScale = 1
         viewFullScreen(getImgUrl(m.url), true);
     }
 }
 
-// HÀM XỬ LÝ PINCH-TO-ZOOM, PANNING VÀ DOUBLE-TAP CHUẨN NHƯ APP NATIVE (ĐÃ TỐI ƯU HIỆU NĂNG)
 function setupPinchZoom() {
     const img = document.getElementById('fullscreen-img');
     const overlay = document.getElementById('fullscreen-overlay');
@@ -734,12 +741,10 @@ function setupPinchZoom() {
     let lastScale = 1;
     let cachedBounds = {};
 
-    // QUAN TRỌNG: Khóa hành vi cuộn/zoom mặc định của trình duyệt để vuốt mượt mà
     img.style.touchAction = 'none';
     img.style.willChange = 'transform';
 
     function cacheDimensions() {
-        // Fix lỗi không kéo được dọc: Đảm bảo luôn có kích thước kể cả khi ảnh chưa load xong
         const natWidth = img.naturalWidth || img.clientWidth || 1;
         const natHeight = img.naturalHeight || img.clientHeight || 1;
         const imgRatio = natWidth / natHeight;
@@ -788,6 +793,7 @@ function setupPinchZoom() {
 
         if (e.touches.length === 2) {
             e.preventDefault();
+            e.stopPropagation(); // Ngăn xung đột với vuốt
             initialDistance = Math.hypot(
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
@@ -801,14 +807,17 @@ function setupPinchZoom() {
             };
         } 
         else if (e.touches.length === 1) {
-            e.preventDefault();
             lastTouchX = e.touches[0].clientX;
             lastTouchY = e.touches[0].clientY;
+            touchstartX = lastTouchX; // Sync để swipe hoạt động mượt 
         }
     }, { passive: false });
 
     img.addEventListener('touchmove', (e) => {
-        e.preventDefault(); 
+        if(currentScale > 1 || e.touches.length === 2) {
+            e.preventDefault(); 
+            e.stopPropagation();
+        }
 
         if (e.touches.length === 2) {
             const currentDistance = Math.hypot(
@@ -845,7 +854,6 @@ function setupPinchZoom() {
             applyTransform(); 
         } 
         else if (e.touches.length === 1 && currentScale > 1) {
-            // Vuốt 1 ngón mượt mà (bỏ ticking requestAnimationFrame)
             const deltaX = e.touches[0].clientX - lastTouchX;
             const deltaY = e.touches[0].clientY - lastTouchY;
 
@@ -869,12 +877,12 @@ function setupPinchZoom() {
 
         if (e.touches.length === 0) {
             img.style.transition = "transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"; 
+            touchendX = e.changedTouches[0].clientX; 
 
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
             
             if (tapLength < 300 && tapLength > 0 && e.changedTouches.length === 1) {
-                // TÍNH TOÁN ZOOM NGAY TẠI ĐIỂM NHẤN
                 const touchX = e.changedTouches[0].clientX;
                 const touchY = e.changedTouches[0].clientY;
 
@@ -905,8 +913,17 @@ function setupPinchZoom() {
                     translateX = 0;
                     translateY = 0;
                     isZoomed = false;
+                    
+                    // Phát kích vuốt ảnh nếu ảnh không zoom
+                    if (Math.abs(touchendX - touchstartX) > 50) {
+                        handleSwipe();
+                    }
                 } else {
                     checkBounds();
+                    // Nếu đang zoom sát mép và vuốt mạnh, gọi chuyển ảnh
+                    if (Math.abs(touchendX - touchstartX) > 50) {
+                        handleSwipe();
+                    }
                 }
             }
             
