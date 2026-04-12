@@ -661,17 +661,63 @@ function setupSwipeEvents() {
     }
 }
 
+// CẬP NHẬT: XỬ LÝ VUỐT CHUYỂN ẢNH THÔNG MINH NGAY CẢ KHI ĐANG ZOOM
 function handleSwipe() {
     if (!isViewingMomentFullscreen) return; 
-    if (isZoomed || currentScale > 1) return; // Không vuốt khi đang zoom
     
-    if (touchendX < touchstartX - 50) {
-        changeMoment(1);
-        updateFullscreenImage(); // Giả định hàm này tự update ảnh tiếp theo
+    // TRƯỜNG HỢP 1: KHI ẢNH KHÔNG ZOOM -> Vuốt chuyển ảnh bình thường
+    if (!isZoomed || currentScale <= 1) {
+        if (touchendX < touchstartX - 50) {
+            changeMoment(1);
+            updateFullscreenImage();
+        }
+        else if (touchendX > touchstartX + 50) {
+            changeMoment(-1);
+            updateFullscreenImage(); 
+        }
+        return;
     }
-    if (touchendX > touchstartX + 50) {
+
+    // TRƯỜNG HỢP 2: KHI ẢNH ĐANG ZOOM -> Chỉ chuyển ảnh khi đã kéo sát rìa ảnh
+    const img = document.getElementById('fullscreen-img');
+    const natWidth = img.naturalWidth || img.clientWidth || 1;
+    const natHeight = img.naturalHeight || img.clientHeight || 1;
+    const imgRatio = natWidth / natHeight;
+    const containerRatio = window.innerWidth / window.innerHeight;
+
+    let actualWidth;
+    if (imgRatio > containerRatio) {
+        actualWidth = window.innerWidth;
+    } else {
+        actualWidth = window.innerHeight * imgRatio;
+    }
+
+    // Tính toán giới hạn (viền) của ảnh khớp với logic trong hàm setupPinchZoom()
+    const scaledWidth = actualWidth * currentScale;
+    const maxX = Math.max(0, (scaledWidth - window.innerWidth) / 2);
+
+    // Kiểm tra xem ảnh đã được kéo chạm lề chưa (cho phép sai số 5px để vuốt nhạy hơn)
+    const atRightEdge = translateX <= -maxX + 5; // Đã kéo sang trái tối đa (đang xem lề phải ảnh)
+    const atLeftEdge = translateX >= maxX - 5;   // Đã kéo sang phải tối đa (đang xem lề trái ảnh)
+
+    // Nếu vuốt sang TRÁI (touchendX < touchstartX) VÀ đang ở lề PHẢI của ảnh -> Chuyển ảnh NEXT
+    if (atRightEdge && touchendX < touchstartX - 50) {
+        changeMoment(1);
+        updateFullscreenImage();
+    }
+    // Nếu vuốt sang PHẢI (touchendX > touchstartX) VÀ đang ở lề TRÁI của ảnh -> Chuyển ảnh PREV
+    else if (atLeftEdge && touchendX > touchstartX + 50) {
         changeMoment(-1);
-        updateFullscreenImage(); 
+        updateFullscreenImage();
+    }
+}
+
+// HÀM BỔ SUNG: Load ảnh mới và reset trạng thái Zoom khi chuyển ảnh
+function updateFullscreenImage() {
+    const m = allMoments[currentMomentIdx];
+    if (m) {
+        // Tái sử dụng viewFullScreen để load ảnh mới, hàm này đã có sẵn logic reset biến currentScale = 1
+        viewFullScreen(getImgUrl(m.url), true);
     }
 }
 
