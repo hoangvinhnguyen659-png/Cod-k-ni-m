@@ -569,17 +569,51 @@ function viewFullScreen(imgSrc, isMoment = false) {
         img.style.transform = `translate(0px, 0px) scale(${currentScale})`;
         img.style.transition = "transform 0.2s ease"; 
         
-        // Hỗ trợ nhấn đúp trên máy tính (PC)
+        // Hỗ trợ nhấn đúp trên máy tính (PC) có zoom tại điểm chuột
         img.ondblclick = function(e) {
             e.stopPropagation(); 
-            if (currentScale > 1) { // Đang to -> Thu nhỏ về nguyên bản
+            if (currentScale > 1) { 
                 currentScale = 1; 
                 translateX = 0;
                 translateY = 0;
                 isZoomed = false;
-            } else { // Đang nhỏ -> Phóng to
+            } else { 
                 currentScale = 2.5; 
                 isZoomed = true;
+                
+                // Tính toán điểm chuột
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const offsetX = e.clientX - centerX;
+                const offsetY = e.clientY - centerY;
+                
+                translateX = -offsetX * (currentScale - 1);
+                translateY = -offsetY * (currentScale - 1);
+
+                // Check giới hạn ngay lập tức
+                const natWidth = img.naturalWidth || img.clientWidth || 1;
+                const natHeight = img.naturalHeight || img.clientHeight || 1;
+                const imgRatio = natWidth / natHeight;
+                const containerRatio = window.innerWidth / window.innerHeight;
+                let actualWidth, actualHeight;
+                
+                if (imgRatio > containerRatio) {
+                    actualWidth = window.innerWidth;
+                    actualHeight = window.innerWidth / imgRatio;
+                } else {
+                    actualHeight = window.innerHeight;
+                    actualWidth = window.innerHeight * imgRatio;
+                }
+
+                const scaledWidth = actualWidth * currentScale;
+                const scaledHeight = actualHeight * currentScale;
+                const maxX = Math.max(0, (scaledWidth - window.innerWidth) / 2);
+                const maxY = Math.max(0, (scaledHeight - window.innerHeight) / 2);
+
+                if (translateX > maxX) translateX = maxX;
+                if (translateX < -maxX) translateX = -maxX;
+                if (translateY > maxY) translateY = maxY;
+                if (translateY < -maxY) translateY = -maxY;
             }
             img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
         };
@@ -633,11 +667,11 @@ function handleSwipe() {
     
     if (touchendX < touchstartX - 50) {
         changeMoment(1);
-        updateFullscreenImage();
+        updateFullscreenImage(); // Giả định hàm này tự update ảnh tiếp theo
     }
     if (touchendX > touchstartX + 50) {
         changeMoment(-1);
-        updateFullscreenImage();
+        updateFullscreenImage(); 
     }
 }
 
@@ -652,18 +686,19 @@ function setupPinchZoom() {
     let lastTapTime = 0;
     let pinchCenter = { x: 0, y: 0 }; 
     let lastScale = 1;
+    let cachedBounds = {};
 
-    // --- CÁC BIẾN TỐI ƯU HIỆU NĂNG ---
-    let ticking = false;       // Cờ kiểm soát requestAnimationFrame
-    let cachedBounds = {};     // Lưu trữ kích thước màn hình & ảnh
-
-    // Ép trình duyệt dùng GPU để xử lý transform giúp hình ảnh mượt hơn
+    // QUAN TRỌNG: Khóa hành vi cuộn/zoom mặc định của trình duyệt để vuốt mượt mà
+    img.style.touchAction = 'none';
     img.style.willChange = 'transform';
 
-    // Tính toán kích thước 1 lần duy nhất thay vì tính liên tục khi kéo
     function cacheDimensions() {
-        const imgRatio = img.naturalWidth / img.naturalHeight;
+        // Fix lỗi không kéo được dọc: Đảm bảo luôn có kích thước kể cả khi ảnh chưa load xong
+        const natWidth = img.naturalWidth || img.clientWidth || 1;
+        const natHeight = img.naturalHeight || img.clientHeight || 1;
+        const imgRatio = natWidth / natHeight;
         const containerRatio = window.innerWidth / window.innerHeight;
+        
         let actualWidth, actualHeight;
 
         if (imgRatio > containerRatio) {
@@ -682,9 +717,8 @@ function setupPinchZoom() {
         };
     }
 
-    // Kiểm tra giới hạn dựa trên dữ liệu đã cache
     function checkBounds() {
-        if (!cachedBounds.actualWidth) return;
+        if (!cachedBounds.actualWidth) cacheDimensions();
 
         const scaledWidth = cachedBounds.actualWidth * currentScale;
         const scaledHeight = cachedBounds.actualHeight * currentScale;
@@ -698,21 +732,12 @@ function setupPinchZoom() {
         if (translateY < -maxY) translateY = -maxY;
     }
 
-    // Hàm cập nhật giao diện mượt mà qua requestAnimationFrame
     function applyTransform() {
-        if (!ticking) {
-            requestAnimationFrame(() => {
-                img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
-                ticking = false;
-            });
-            ticking = true;
-        }
+        img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
     }
 
     img.addEventListener('touchstart', (e) => {
         img.style.transition = 'none'; 
-        
-        // Cache kích thước ngay lúc bắt đầu chạm để dùng cho touchmove
         cacheDimensions();
 
         if (e.touches.length === 2) {
@@ -771,9 +796,10 @@ function setupPinchZoom() {
             pinchCenter = newCenter;
             isZoomed = currentScale > 1;
 
-            applyTransform(); // Cập nhật mượt mà
+            applyTransform(); 
         } 
         else if (e.touches.length === 1 && currentScale > 1) {
+            // Vuốt 1 ngón mượt mà (bỏ ticking requestAnimationFrame)
             const deltaX = e.touches[0].clientX - lastTouchX;
             const deltaY = e.touches[0].clientY - lastTouchY;
 
@@ -785,7 +811,7 @@ function setupPinchZoom() {
             lastTouchX = e.touches[0].clientX;
             lastTouchY = e.touches[0].clientY;
 
-            applyTransform(); // Cập nhật mượt mà
+            applyTransform(); 
         }
     }, { passive: false });
 
@@ -802,14 +828,30 @@ function setupPinchZoom() {
             const tapLength = currentTime - lastTapTime;
             
             if (tapLength < 300 && tapLength > 0 && e.changedTouches.length === 1) {
+                // TÍNH TOÁN ZOOM NGAY TẠI ĐIỂM NHẤN
+                const touchX = e.changedTouches[0].clientX;
+                const touchY = e.changedTouches[0].clientY;
+
                 if (currentScale > 1) {
                     currentScale = 1;
                     translateX = 0;
                     translateY = 0;
                     isZoomed = false;
                 } else {
+                    cacheDimensions();
                     currentScale = 2.5;
                     isZoomed = true;
+                    
+                    const centerX = cachedBounds.windowWidth / 2;
+                    const centerY = cachedBounds.windowHeight / 2;
+                    
+                    const offsetX = touchX - centerX;
+                    const offsetY = touchY - centerY;
+                    
+                    translateX = -offsetX * (currentScale - 1);
+                    translateY = -offsetY * (currentScale - 1);
+                    
+                    checkBounds(); 
                 }
             } else {
                 if (currentScale <= 1) {
@@ -823,10 +865,7 @@ function setupPinchZoom() {
             }
             
             lastTapTime = currentTime;
-            
-            // Ở sự kiện touchend (thả tay), cập nhật style trực tiếp 
-            // để CSS transition thực thi được ngay lập tức
-            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+            applyTransform();
         }
     });
 }
